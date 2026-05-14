@@ -41,8 +41,9 @@ function _processGithubNotifications() {
   const githubLabel = _getOrCreateLabel(githubLabelText);
   const threads = GmailApp.search(searchQuery, 0, 100);
   if (threads.length > 0) {
+    const labels = [];
     for (const thread of threads) {
-      thread.addLabel(githubLabel);
+      labels.push(githubLabel);
 
       const msg = thread.getMessages()[0];
       const headers = _getHeaderMap(msg);
@@ -50,8 +51,16 @@ function _processGithubNotifications() {
       //console.log(`Got reason: ${reason}`)
 
       if (reason) {
-        reasonLabel = _getOrCreateLabel(`${githubLabelText}/${reason}`);
-        thread.addLabel(reasonLabel);
+        labels.push(_getOrCreateLabel(`${githubLabelText}/${reason}`));
+      }
+
+      is_issue = headers["x-github-issuestate"];
+      if (is_issue) {
+        labels.push(_getOrCreateLabels("bug/github"));
+      }
+
+      for (const label of labels) {
+        thread.addLabel(label);
       }
     }
     Logger.log(`Processed ${threads.length} github notifications`);
@@ -61,20 +70,22 @@ function _processGithubNotifications() {
 function _processCalendarResponses() {
   console.log("Processing calendar responses");
 
+  const parentLabel = "calendar";
   // 1. Define the relationship between subjects and labels
   const responseTypes = {
-    "Declined:": "calendar/declined",
-    "Accepted:": "calendar/accept",
+    "Declined:": `${parentLabel}/declined`,
+    "Accepted:": `${parentLabel}/accepted`,
   };
-
-  const parentLabelName = "calendar";
-  const parentLabel = _getOrCreateLabel(parentLabelName);
 
   // 2. Loop through each response type and process
   for (const subjectPrefix in responseTypes) {
     const labelPath = responseTypes[subjectPrefix];
-    const childLabel = _getOrCreateLabel(labelPath);
-    const expireLabel = _getOrCreateLabel("expireafter/5d");
+    const labels = _getOrCreateLabels([
+      parentLabel,
+      labelPath,
+      "autoexpire",
+      "expireafter/5d",
+    ]);
 
     // Search query specific to this prefix
     const searchQuery = `subject:"${subjectPrefix}" has:attachment filename:invite.ics -label:calendar`;
@@ -82,9 +93,9 @@ function _processCalendarResponses() {
 
     if (threads.length > 0) {
       for (const thread of threads) {
-        thread.addLabel(expireLabel);
-        thread.addLabel(parentLabel);
-        thread.addLabel(childLabel);
+        for (const label of labels) {
+          thread.addLabel(label);
+        }
         thread.moveToArchive();
       }
       Logger.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
@@ -121,34 +132,44 @@ function _getExpireAfterValue(thread) {
   return null;
 }
 
-/**
- * Helper function _to get a label or create it if it doesn't exist
- */
-function _old__getOrCreateLabel(labelName) {
-  let label = GmailApp.getUserLabelByName(labelName);
-  if (!label) {
-    label = GmailApp.createLabel(labelName);
-  }
-  return label;
-}
+// label cache to avoid redundant api queries
+const _labelCache = {};
 
 /**
  * Helper function _to get or create a label. This one handles nesting properly.
  */
 function _getOrCreateLabel(path) {
+  if (_labelCache[path]) {
+    return _labelCache[path];
+  }
+
   const parts = path.split("/");
   let currentPath = "";
   let lastLabel = null;
 
   for (let i = 0; i < parts.length; i++) {
     currentPath += (i === 0 ? "" : "/") + parts[i];
+    if (_labelCache[currentPath]) {
+      lastLabel = _labelCache[currentPath];
+      continue;
+    }
     let label = GmailApp.getUserLabelByName(currentPath);
     if (!label) {
       label = GmailApp.createLabel(currentPath);
     }
+    _labelCache[currentPath] = label;
     lastLabel = label;
   }
   return lastLabel;
+}
+
+function _getOrCreateLabels(names) {
+  const labels = [];
+  for (const name of names) {
+    labels.push(_getOrCreateLabel(name));
+  }
+
+  return labels;
 }
 
 /**
