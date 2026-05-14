@@ -34,6 +34,25 @@ function _expireEmail() {
   Logger.log(`Expired ${expired} threads`);
 }
 
+function _relabelGithub() {
+  const searchQuery = `label:notification/github`;
+  const threads = GmailApp.search(searchQuery);
+  for (const thread of threads) {
+    const msg = thread.getMessages()[0];
+    const headers = _getHeaderMap(msg);
+    const labels = [];
+
+    is_issue = headers["x-github-issuestate"];
+    if (is_issue) {
+      labels.push(_getOrCreateLabels("bug/github"));
+    }
+
+    for (const label of labels) {
+      thread.addLabel(label);
+    }
+  }
+}
+
 function _processGithubNotifications() {
   console.log("Processing github notifications");
   githubLabelText = "notification/github";
@@ -101,113 +120,4 @@ function _processCalendarResponses() {
       Logger.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
     }
   }
-}
-
-function _parseDuration(duration) {
-  const match = duration.match(/^(\d+)([mhdwy])$/);
-  if (!match) {
-    throw new Error(`Invalid duration: ${duration}`);
-  }
-  const value = parseInt(match[1], 10);
-  const unit = match[2];
-  const multipliers = {
-    m: 60 * 1000,
-    h: 60 * 60 * 1000,
-    d: 24 * 60 * 60 * 1000,
-    w: 7 * 24 * 60 * 60 * 1000,
-    y: 365 * 24 * 60 * 60 * 1000,
-  };
-  return value * multipliers[unit];
-}
-
-function _getExpireAfterValue(thread) {
-  const labels = thread.getLabels();
-  for (const label of labels) {
-    const name = label.getName();
-    const match = name.match(/^expireafter\/(.+)$/);
-    if (match) {
-      return match[1];
-    }
-  }
-  return null;
-}
-
-// label cache to avoid redundant api queries
-const _labelCache = {};
-
-/**
- * Helper function _to get or create a label. This one handles nesting properly.
- */
-function _getOrCreateLabel(path) {
-  if (_labelCache[path]) {
-    return _labelCache[path];
-  }
-
-  const parts = path.split("/");
-  let currentPath = "";
-  let lastLabel = null;
-
-  for (let i = 0; i < parts.length; i++) {
-    currentPath += (i === 0 ? "" : "/") + parts[i];
-    if (_labelCache[currentPath]) {
-      lastLabel = _labelCache[currentPath];
-      continue;
-    }
-    let label = GmailApp.getUserLabelByName(currentPath);
-    if (!label) {
-      label = GmailApp.createLabel(currentPath);
-    }
-    _labelCache[currentPath] = label;
-    lastLabel = label;
-  }
-  return lastLabel;
-}
-
-function _getOrCreateLabels(names) {
-  const labels = [];
-  for (const name of names) {
-    labels.push(_getOrCreateLabel(name));
-  }
-
-  return labels;
-}
-
-/**
- * Parses all message headers into a Map.
- * Keys are lowercase. Values are arrays of strings.
- */
-function _getHeaderMap(message) {
-  const raw = message.getRawContent();
-
-  // Split raw content into the header and body sections.
-  // Headers are separated from the body by a double newline.
-  const headerSection = raw.split(/\r?\n\r?\n/)[0];
-  const lines = headerSection.split(/\r?\n/);
-
-  const headerMap = {};
-  let lastKey = null;
-
-  lines.forEach((line) => {
-    // Check for a folded line (starts with a space or tab)
-    if (line.match(/^[ \t]/) && lastKey) {
-      const unfoldedValue = line.replace(/^[ \t]+/, " ");
-      const currentIndex = headerMap[lastKey].length - 1;
-      headerMap[lastKey][currentIndex] += unfoldedValue;
-    } else {
-      // Find the first colon to split Key and Value
-      const colonIndex = line.indexOf(":");
-      if (colonIndex > -1) {
-        const key = line.substring(0, colonIndex).trim().toLowerCase();
-        const value = line.substring(colonIndex + 1).trim();
-
-        if (!headerMap[key]) {
-          headerMap[key] = [];
-        }
-        headerMap[key].push(value);
-        lastKey = key;
-      }
-    }
-  });
-
-  return headerMap;
 }
