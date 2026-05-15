@@ -43,8 +43,8 @@ function _processGithubNotifications() {
   const githubLabel = _getOrCreateLabel(githubLabelText);
   const threads = GmailApp.search(searchQuery, 0, 100);
   if (threads.length > 0) {
-    const labels = [];
     for (const thread of threads) {
+      const labels = [];
       labels.push(githubLabel);
 
       // Extract github notification reason from message headers and use that
