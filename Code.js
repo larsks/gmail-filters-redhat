@@ -71,11 +71,14 @@ function _processGithubNotifications() {
 
       if (reason) {
         labels.push(_getOrCreateLabel(`${githubLabelText}/${reason}`));
+        if (reason === "review_requested") {
+          labels.push(_getOrCreateLabel("review/github"));
+        }
       }
 
       is_issue = headers["x-github-issuestate"];
       if (is_issue) {
-        labels.push(_getOrCreateLabels("bug/github"));
+        labels.push(_getOrCreateLabel("bug/github"));
       }
 
       for (const label of labels) {
@@ -92,13 +95,23 @@ function _processCalendarResponses() {
   const parentLabel = "calendar";
   // 1. Define the relationship between subjects and labels
   const responseTypes = {
-    "Declined:": `${parentLabel}/declined`,
-    "Accepted:": `${parentLabel}/accepted`,
+    "Declined:": {
+      label: `${parentLabel}/declined`,
+      archive: true,
+    },
+    "Accepted:": {
+      label: `${parentLabel}/accepted`,
+      archive: true,
+    },
+    "Invitation:": {
+      label: `${parentLabel}/invitation`,
+      archive: false,
+    },
   };
 
   // 2. Loop through each response type and process
   for (const subjectPrefix in responseTypes) {
-    const labelPath = responseTypes[subjectPrefix];
+    const labelPath = responseTypes[subjectPrefix].label;
     const labels = _getOrCreateLabels([
       parentLabel,
       labelPath,
@@ -115,7 +128,9 @@ function _processCalendarResponses() {
         for (const label of labels) {
           thread.addLabel(label);
         }
-        thread.moveToArchive();
+        if (responseTypes[subjectPrefix].archive) {
+          thread.moveToArchive();
+        }
       }
       Logger.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
     }

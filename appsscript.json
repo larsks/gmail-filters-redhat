@@ -13,5 +13,6 @@
   "runtimeVersion": "V8",
   "executionApi": {
     "access": "MYSELF"
-  }
+  },
+  "oauthScopes": ["https://mail.google.com/"]
 }
