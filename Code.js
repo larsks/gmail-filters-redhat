@@ -121,3 +121,7 @@ function _processCalendarResponses() {
     }
   }
 }
+
+function _testFunction() {
+  console.log("This is a test.");
+}
