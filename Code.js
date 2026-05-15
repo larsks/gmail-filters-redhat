@@ -9,7 +9,7 @@ function _createTimeTriggers() {
   ScriptApp.newTrigger("_filterEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("_expireEmail").timeBased().everyDays(1).create();
 
-  Logger.log("Trigger created successfully.");
+  console.log("Trigger created successfully.");
 }
 
 function _filterEmail() {
@@ -33,7 +33,7 @@ function _expireEmail() {
       expired++;
     }
   }
-  Logger.log(`Expired ${expired} threads`);
+  console.log(`Expired ${expired} threads`);
 }
 
 function _processGithubNotifications() {
@@ -70,7 +70,7 @@ function _processGithubNotifications() {
         thread.addLabel(label);
       }
     }
-    Logger.log(`Processed ${threads.length} github notifications`);
+    console.log(`Processed ${threads.length} github notifications`);
   }
 }
 
@@ -119,7 +119,7 @@ function _processCalendarResponses() {
           thread.moveToArchive();
         }
       }
-      Logger.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
+      console.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
     }
   }
 }

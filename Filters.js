@@ -555,15 +555,15 @@ function _createAllFilters() {
   let created = 0;
   for (const resource of resources) {
     try {
-      Gmail.Users.Settings.Filters.create(resource, "me");
+      _createFilterWithRetry(resource);
       created++;
     } catch (e) {
-      Logger.log(`Failed to create filter: ${JSON.stringify(resource)}`);
+      console.log(`Failed to create filter: ${JSON.stringify(resource)}`);
       throw e;
     }
   }
 
-  Logger.log(`Created ${created} filters`);
+  console.log(`Created ${created} filters`);
 }
 
 function _deleteAllFilters() {
@@ -571,7 +571,7 @@ function _deleteAllFilters() {
   for (const filter of filters) {
     Gmail.Users.Settings.Filters.remove("me", filter.id);
   }
-  Logger.log(`Deleted ${filters.length} filters`);
+  console.log(`Deleted ${filters.length} filters`);
 }
 
 function _syncFilters() {
@@ -603,7 +603,7 @@ function _syncFilters() {
   for (const [key, resource] of desiredByFingerprint) {
     if (!existingByFingerprint.has(key)) {
       try {
-        Gmail.Users.Settings.Filters.create(resource, "me");
+        _createFilterWithRetry(resource);
         created++;
       } catch (e) {
         throw new Error(
@@ -613,7 +613,7 @@ function _syncFilters() {
     }
   }
 
-  Logger.log(
+  console.log(
     `Sync complete: created ${created}, deleted ${deleted}, unchanged ${desired.length - created}`,
   );
 }

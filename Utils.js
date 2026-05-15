@@ -38,6 +38,22 @@ function _getExpireAfterValue(thread) {
   return null;
 }
 
+function _createFilterWithRetry(resource, maxRetries = 3) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return Gmail.Users.Settings.Filters.create(resource, "me");
+    } catch (e) {
+      if (attempt === maxRetries) {
+        throw e;
+      }
+      console.log(
+        `Retrying filter creation (attempt ${attempt}/${maxRetries}): ${e.message}`,
+      );
+      Utilities.sleep(1000 * attempt);
+    }
+  }
+}
+
 // label cache to avoid redundant api queries
 const _labelCache = {};
 
