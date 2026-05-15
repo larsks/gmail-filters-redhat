@@ -7,7 +7,7 @@ function _createTimeTriggers() {
   triggers.forEach((t) => ScriptApp.deleteTrigger(t));
 
   ScriptApp.newTrigger("_filterEmail").timeBased().everyMinutes(30).create();
-  ScriptApp.newTrigger("_expireEmail").timeBased().everyDays(1).create();
+  ScriptApp.newTrigger("_expireEmail").timeBased().everyMinutes(30).create();
 
   console.log("Trigger created successfully.");
 }

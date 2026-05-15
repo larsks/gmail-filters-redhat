@@ -16,6 +16,7 @@
   },
   "oauthScopes": [
     "https://mail.google.com/",
-    "https://www.googleapis.com/auth/gmail.settings.basic"
+    "https://www.googleapis.com/auth/gmail.settings.basic",
+    "https://www.googleapis.com/auth/script.scriptapp"
   ]
 }
