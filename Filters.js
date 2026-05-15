@@ -105,10 +105,30 @@ const FILTERS = [
     },
   },
   {
-    criteria: { from: "bugzilla@redhat.com" },
+    criteria: {
+      query: "from:bugzilla@redhat.com",
+    },
     actions: {
       labels: ["bug/redhat"],
       archive: true,
+      neverSpam: true,
+    },
+  },
+  {
+    criteria: {
+      query: "from:(jira-issues@redhat.com OR jira@redhat.atlassian.net)",
+    },
+    actions: {
+      labels: ["bug/redhat"],
+      neverSpam: true,
+    },
+  },
+  {
+    criteria: {
+      query: "from:jira@redhat.atlassian.net subject:OSAC",
+    },
+    actions: {
+      labels: ["!bug/redhat/osac"],
       neverSpam: true,
     },
   },
