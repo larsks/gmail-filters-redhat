@@ -513,19 +513,56 @@ function _buildFilterResources(labelMap) {
 
 // Generate a comparable representation of a filter that we can use to
 // determine if a filter exists or not.
+function _normalizeObject(obj) {
+  const result = {};
+  for (const key of Object.keys(obj).sort()) {
+    const val = obj[key];
+
+    // Drop "empty" values.
+    if (val === undefined || val === null || val === "") continue;
+    if (Array.isArray(val)) {
+      if (val.length === 0) continue;
+      result[key] = val.slice().sort();
+    } else {
+      result[key] = val;
+    }
+  }
+  return result;
+}
+
 function _fingerprintFilter(resource) {
+  // We eliminiate any keys not listed in criteriaKeys
+  const criteriaKeys = [
+    "from",
+    "to",
+    "subject",
+    "query",
+    "negatedQuery",
+    "hasAttachment",
+    "excludeChats",
+    "size",
+    "sizeComparison",
+  ];
+  const actionKeys = ["addLabelIds", "removeLabelIds", "forward"];
+
   const criteria = {};
-  for (const key of Object.keys(resource.criteria).sort()) {
-    criteria[key] = resource.criteria[key];
+  for (const key of criteriaKeys) {
+    if (resource.criteria[key] !== undefined) {
+      criteria[key] = resource.criteria[key];
+    }
   }
 
   const action = {};
-  for (const key of Object.keys(resource.action).sort()) {
-    const val = resource.action[key];
-    action[key] = Array.isArray(val) ? val.slice().sort() : val;
+  for (const key of actionKeys) {
+    if (resource.action[key] !== undefined) {
+      action[key] = resource.action[key];
+    }
   }
 
-  return JSON.stringify({ criteria, action });
+  return JSON.stringify({
+    criteria: _normalizeObject(criteria),
+    action: _normalizeObject(action),
+  });
 }
 
 // Ensure that all labels referenced in filters exist in gmail.
