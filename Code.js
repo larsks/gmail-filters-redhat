@@ -17,6 +17,8 @@ function _filterEmail() {
   _processGithubNotifications();
 }
 
+// Look for messages with the `expireafter` label and delete them if they are
+// older than the configured retention period.
 function _expireEmail() {
   const threads = GmailApp.search("label:expireafter", 0, 100);
   let expired = 0;
@@ -34,25 +36,6 @@ function _expireEmail() {
   Logger.log(`Expired ${expired} threads`);
 }
 
-function _relabelGithub() {
-  const searchQuery = `label:notification/github`;
-  const threads = GmailApp.search(searchQuery);
-  for (const thread of threads) {
-    const msg = thread.getMessages()[0];
-    const headers = _getHeaderMap(msg);
-    const labels = [];
-
-    is_issue = headers["x-github-issuestate"];
-    if (is_issue) {
-      labels.push(_getOrCreateLabel("bug/github"));
-    }
-
-    for (const label of labels) {
-      thread.addLabel(label);
-    }
-  }
-}
-
 function _processGithubNotifications() {
   console.log("Processing github notifications");
   githubLabelText = "notification/github";
@@ -64,10 +47,11 @@ function _processGithubNotifications() {
     for (const thread of threads) {
       labels.push(githubLabel);
 
+      // Extract github notification reason from message headers and use that
+      // as a label.
       const msg = thread.getMessages()[0];
       const headers = _getHeaderMap(msg);
       reason = headers["x-github-reason"];
-      //console.log(`Got reason: ${reason}`)
 
       if (reason) {
         labels.push(_getOrCreateLabel(`${githubLabelText}/${reason}`));
@@ -76,6 +60,7 @@ function _processGithubNotifications() {
         }
       }
 
+      // Special labelling for issues to match existing label categories.
       is_issue = headers["x-github-issuestate"];
       if (is_issue) {
         labels.push(_getOrCreateLabel("bug/github"));
@@ -89,6 +74,8 @@ function _processGithubNotifications() {
   }
 }
 
+// Find and label google calendar notifications. We configure these to expire
+// after five days.
 function _processCalendarResponses() {
   console.log("Processing calendar responses");
 
@@ -135,8 +122,4 @@ function _processCalendarResponses() {
       Logger.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
     }
   }
-}
-
-function _testFunction() {
-  console.log("This is a test.");
 }

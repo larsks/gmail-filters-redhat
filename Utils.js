@@ -1,3 +1,13 @@
+// Takes as input a duration specification of the form <VALUE><UNIT>,
+// where <VALUE> is an integer and <UNIT> is one of:
+//
+// - d (days)
+// - h (hours)
+// - m (months)
+// - w (weeks)
+// - y (years)
+//
+// Returns duration in number of milliseconds.
 function _parseDuration(duration) {
   const match = duration.match(/^(\d+)([mhdwy])$/);
   if (!match) {
@@ -15,6 +25,7 @@ function _parseDuration(duration) {
   return value * multipliers[unit];
 }
 
+// Extracts retention period from a label of the form `expireafter/<VALUE>`.
 function _getExpireAfterValue(thread) {
   const labels = thread.getLabels();
   for (const label of labels) {
@@ -30,9 +41,8 @@ function _getExpireAfterValue(thread) {
 // label cache to avoid redundant api queries
 const _labelCache = {};
 
-/**
- * Helper function _to get or create a label. This one handles nesting properly.
- */
+// Helper function _to get or create a label. Handles nested labels automatically
+// and ensures that superior labels exist.
 function _getOrCreateLabel(path) {
   if (_labelCache[path]) {
     return _labelCache[path];
@@ -67,10 +77,8 @@ function _getOrCreateLabels(names) {
   return labels;
 }
 
-/**
- * Parses all message headers into a Map.
- * Keys are lowercase. Values are arrays of strings.
- */
+// Parses all message headers into a Map.
+// Keys are lowercase. Values are arrays of strings.
 function _getHeaderMap(message) {
   const raw = message.getRawContent();
 

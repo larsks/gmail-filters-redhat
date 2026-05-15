@@ -1,5 +1,7 @@
 const FILTERS = [
   {
+    // This matches message that mention some variant of my name but that aren't actually to: me
+    // and that are not calendar invites.
     criteria: {
       query:
         "{larsks lkellogg kellogg-stedman lars@redhat.com} AND -to:me AND -{has:attachment filename:invite.ics}",
@@ -433,8 +435,8 @@ const FILTERS = [
   },
   {
     criteria: {
-      from: "help@(nerc OR nese).mghpcc.org",
-      subject: "Ticket Alert",
+      query:
+        'from:(help@nerc.mghpcc.org OR help@nese.mghpcc.org) subject:"Ticket Alert"',
     },
     actions: {
       trash: true,
@@ -442,7 +444,8 @@ const FILTERS = [
   },
   {
     criteria: {
-      from: "(president OR sumlab OR bwell OR provost OR research OR livingourvalues OR bussw OR excellence OR sustainability)@bu.edu",
+      query:
+        "from:(president@bu.edu OR sumlab@bu.edu OR bwell@bu.edu OR provost@bu.edu OR research@bu.edu OR livingourvalues@bu.edu OR bussw@bu.edu OR excellence@bu.edu OR sustainability@bu.edu)",
     },
     actions: {
       trash: true,
@@ -450,6 +453,11 @@ const FILTERS = [
   },
 ];
 
+// Expands labels of the form `one/two/three` into `one`, `one/two`, and
+// `one/two/three`. We use this to create label hierarchies (which show up as
+// imap folders), so that something like `list/fedora/devel` will cause the
+// message to show in the `list` folder, the `list/fedora` folder, and the
+// `list/fedora/devel` folder.
 function _expandLabelHierarchy(labels) {
   const expanded = [];
   const seen = {};
@@ -466,6 +474,8 @@ function _expandLabelHierarchy(labels) {
   return expanded;
 }
 
+// Iterate through our filter definitions and built gmail filter
+// api objects. Expand hierarchical labels (list/foo/bar).
 function _buildFilterResources(labelMap) {
   const resources = [];
 
@@ -501,6 +511,8 @@ function _buildFilterResources(labelMap) {
   return resources;
 }
 
+// Generate a comparable representation of a filter that we can use to
+// determine if a filter exists or not.
 function _fingerprintFilter(resource) {
   const criteria = {};
   for (const key of Object.keys(resource.criteria).sort()) {
@@ -516,6 +528,7 @@ function _fingerprintFilter(resource) {
   return JSON.stringify({ criteria, action });
 }
 
+// Ensure that all labels referenced in filters exist in gmail.
 function _ensureLabelsExist() {
   for (const filter of FILTERS) {
     if (filter.actions.labels) {
@@ -524,6 +537,8 @@ function _ensureLabelsExist() {
   }
 }
 
+// Build a map of label names to ids. This is used when creating filter api
+// objets, which need to reference labels by id rather than by name.
 function _buildLabelMap() {
   const labelMap = {};
   for (const label of Gmail.Users.Labels.list("me").labels) {
@@ -587,8 +602,14 @@ function _syncFilters() {
   let created = 0;
   for (const [key, resource] of desiredByFingerprint) {
     if (!existingByFingerprint.has(key)) {
-      Gmail.Users.Settings.Filters.create(resource, "me");
-      created++;
+      try {
+        Gmail.Users.Settings.Filters.create(resource, "me");
+        created++;
+      } catch (e) {
+        throw new Error(
+          `Failed to create filter: ${e.message}\n${JSON.stringify(resource)}`,
+        );
+      }
     }
   }
 
