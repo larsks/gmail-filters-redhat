@@ -376,7 +376,11 @@ describe("_buildFilterResources", () => {
   it("preserves criteria fields", () => {
     const ctx = loadFilters([
       {
-        criteria: { from: "a@example.com", subject: "test", query: "is:unread" },
+        criteria: {
+          from: "a@example.com",
+          subject: "test",
+          query: "is:unread",
+        },
         actions: { star: true },
       },
     ]);
