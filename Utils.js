@@ -38,6 +38,21 @@ function _getExpireAfterValue(thread) {
   return null;
 }
 
+// Returns all Gmail labels matching `expireafter/*`.
+function _getExpireAfterLabels() {
+  return GmailApp.getUserLabels().filter((label) =>
+    label.getName().match(/^expireafter\/.+$/),
+  );
+}
+
+// Formats a Date as YYYY/MM/DD for use in Gmail search queries.
+function _formatDateForSearch(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}/${m}/${d}`;
+}
+
 function _createFilterWithRetry(resource, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {

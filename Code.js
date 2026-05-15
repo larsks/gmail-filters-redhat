@@ -17,18 +17,19 @@ function _filterEmail() {
   _processGithubNotifications();
 }
 
-// Look for messages with the `expireafter` label and delete them if they are
+// Look for message with an expireafter/RETENTION label and delete messages
 // older than the configured retention period.
 function _expireEmail() {
-  const threads = GmailApp.search("label:expireafter", 0, 100);
   let expired = 0;
-  for (const thread of threads) {
-    const expireValue = _getExpireAfterValue(thread);
-    if (!expireValue) continue;
+  for (const label of _getExpireAfterLabels()) {
+    const value = label.getName().split("/").slice(1).join("/");
+    const maxAgeMs = _parseDuration(value);
+    const cutoff = new Date(Date.now() - maxAgeMs);
+    const before = _formatDateForSearch(cutoff);
+    const query = `label:${label.getName()} before:${before}`;
+    const threads = GmailApp.search(query, 0, 100);
 
-    const maxAgeMs = _parseDuration(expireValue);
-    const ageMs = Date.now() - thread.getLastMessageDate().getTime();
-    if (ageMs > maxAgeMs) {
+    for (const thread of threads) {
       thread.moveToTrash();
       expired++;
     }
@@ -102,7 +103,6 @@ function _processCalendarResponses() {
     const labels = _getOrCreateLabels([
       parentLabel,
       labelPath,
-      "expireafter",
       "expireafter/5d",
     ]);
 
