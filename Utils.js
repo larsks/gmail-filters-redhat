@@ -49,7 +49,7 @@ function _createFilterWithRetry(resource, maxRetries = 5) {
       console.log(
         `Retrying filter creation (attempt ${attempt}/${maxRetries}): ${e.message}`,
       );
-      Utilities.sleep(1000 * Math.pow(2, attempt - 1));
+      Utilities.sleep(1000 * 2 ** (attempt - 1));
     }
   }
 }
