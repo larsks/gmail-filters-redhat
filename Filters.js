@@ -1,3 +1,10 @@
+// IMPORTANT NOTE REGARDING LABELS:
+//
+// A hiearchical label of the form one/two/three will result in the creation of *three* filters, one
+// adding label "one", one adding label "one/two", and one adding the label "one/two/three". If you don't
+// want this feature and intend to only apply the label "one/two/three", prefix the label with "!":
+// "!one/two/three".
+//
 const FILTERS = [
   {
     // This matches message that mention some variant of my name but that aren't actually to: me
