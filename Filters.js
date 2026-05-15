@@ -18,6 +18,13 @@ const FILTERS = [
     },
   },
   {
+    criteria: { query: "list:bss-list.redhat.com bicycle" },
+    actions: {
+      alwaysImportant: true,
+      neverSpam: true,
+    },
+  },
+  {
     criteria: { query: "from:github.com" },
     actions: {
       labels: ["!archiveafter/2d"],
