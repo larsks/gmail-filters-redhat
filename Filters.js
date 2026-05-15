@@ -530,6 +530,7 @@ function _buildFilterResources(labelMap) {
     const systemLabelIds = [];
     if (filter.actions.trash) systemLabelIds.push("TRASH");
     if (filter.actions.star) systemLabelIds.push("STARRED");
+    if (filter.actions.alwaysImportant) systemLabelIds.push("IMPORTANT");
 
     const userLabelNames = filter.actions.labels
       ? _expandLabelHierarchy(filter.actions.labels)
