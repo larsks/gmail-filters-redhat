@@ -337,12 +337,6 @@ const FILTERS = [
     },
   },
   {
-    criteria: { query: "{docker container kubernetes lxc runc}" },
-    actions: {
-      labels: ["containers"],
-    },
-  },
-  {
     criteria: { query: '"needinfo?(lars@redhat.com)"' },
     actions: {
       star: true,
