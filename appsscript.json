@@ -14,5 +14,8 @@
   "executionApi": {
     "access": "MYSELF"
   },
-  "oauthScopes": ["https://mail.google.com/"]
+  "oauthScopes": [
+    "https://mail.google.com/",
+    "https://www.googleapis.com/auth/gmail.settings.basic"
+  ]
 }

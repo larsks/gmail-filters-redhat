@@ -466,19 +466,9 @@ function _expandLabelHierarchy(labels) {
   return expanded;
 }
 
-function _createAllFilters() {
-  for (const filter of FILTERS) {
-    if (filter.actions.labels) {
-      _getOrCreateLabels(_expandLabelHierarchy(filter.actions.labels));
-    }
-  }
+function _buildFilterResources(labelMap) {
+  const resources = [];
 
-  const labelMap = {};
-  for (const label of Gmail.Users.Labels.list("me").labels) {
-    labelMap[label.name] = label.id;
-  }
-
-  let created = 0;
   for (const filter of FILTERS) {
     const removeLabelIds = [];
     if (filter.actions.archive) removeLabelIds.push("INBOX");
@@ -493,7 +483,6 @@ function _createAllFilters() {
       ? _expandLabelHierarchy(filter.actions.labels)
       : [];
 
-    const resources = [];
     if (userLabelNames.length === 0) {
       const action = {};
       if (systemLabelIds.length > 0) action.addLabelIds = systemLabelIds;
@@ -507,15 +496,55 @@ function _createAllFilters() {
         resources.push({ criteria: filter.criteria, action: action });
       }
     }
+  }
 
-    for (const resource of resources) {
-      try {
-        Gmail.Users.Settings.Filters.create(resource, "me");
-        created++;
-      } catch (e) {
-        Logger.log(`Failed to create filter: ${JSON.stringify(resource)}`);
-        throw e;
-      }
+  return resources;
+}
+
+function _fingerprintFilter(resource) {
+  const criteria = {};
+  for (const key of Object.keys(resource.criteria).sort()) {
+    criteria[key] = resource.criteria[key];
+  }
+
+  const action = {};
+  for (const key of Object.keys(resource.action).sort()) {
+    const val = resource.action[key];
+    action[key] = Array.isArray(val) ? val.slice().sort() : val;
+  }
+
+  return JSON.stringify({ criteria, action });
+}
+
+function _ensureLabelsExist() {
+  for (const filter of FILTERS) {
+    if (filter.actions.labels) {
+      _getOrCreateLabels(_expandLabelHierarchy(filter.actions.labels));
+    }
+  }
+}
+
+function _buildLabelMap() {
+  const labelMap = {};
+  for (const label of Gmail.Users.Labels.list("me").labels) {
+    labelMap[label.name] = label.id;
+  }
+  return labelMap;
+}
+
+function _createAllFilters() {
+  _ensureLabelsExist();
+  const labelMap = _buildLabelMap();
+  const resources = _buildFilterResources(labelMap);
+
+  let created = 0;
+  for (const resource of resources) {
+    try {
+      Gmail.Users.Settings.Filters.create(resource, "me");
+      created++;
+    } catch (e) {
+      Logger.log(`Failed to create filter: ${JSON.stringify(resource)}`);
+      throw e;
     }
   }
 
@@ -531,6 +560,39 @@ function _deleteAllFilters() {
 }
 
 function _syncFilters() {
-  _deleteAllFilters();
-  _createAllFilters();
+  _ensureLabelsExist();
+
+  const labelMap = _buildLabelMap();
+  const desired = _buildFilterResources(labelMap);
+  const existing = Gmail.Users.Settings.Filters.list("me").filter || [];
+
+  const desiredByFingerprint = new Map();
+  for (const resource of desired) {
+    desiredByFingerprint.set(_fingerprintFilter(resource), resource);
+  }
+
+  const existingByFingerprint = new Map();
+  for (const filter of existing) {
+    existingByFingerprint.set(_fingerprintFilter(filter), filter);
+  }
+
+  let deleted = 0;
+  for (const [key, filter] of existingByFingerprint) {
+    if (!desiredByFingerprint.has(key)) {
+      Gmail.Users.Settings.Filters.remove("me", filter.id);
+      deleted++;
+    }
+  }
+
+  let created = 0;
+  for (const [key, resource] of desiredByFingerprint) {
+    if (!existingByFingerprint.has(key)) {
+      Gmail.Users.Settings.Filters.create(resource, "me");
+      created++;
+    }
+  }
+
+  Logger.log(
+    `Sync complete: created ${created}, deleted ${deleted}, unchanged ${desired.length - created}`,
+  );
 }
