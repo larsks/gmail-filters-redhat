@@ -5,8 +5,9 @@
   "type": "module",
   "main": "Code.js",
   "scripts": {
+    "test": "node --test --test-reporter=./tests/reporter.js 'tests/**/*.test.js'",
     "validate": "npx @biomejs/biome check && npx eslint",
-    "push": "npm run validate && clasp push"
+    "push": "npm run validate && npm test && clasp push"
   },
   "author": "",
   "license": "ISC",
