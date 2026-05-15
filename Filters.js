@@ -478,28 +478,40 @@ function _createAllFilters() {
 
   let created = 0;
   for (const filter of FILTERS) {
-    const addLabelIds = [];
     const removeLabelIds = [];
-
-    if (filter.actions.labels) {
-      for (const name of _expandLabelHierarchy(filter.actions.labels)) {
-        addLabelIds.push(labelMap[name]);
-      }
-    }
-
     if (filter.actions.archive) removeLabelIds.push("INBOX");
-    if (filter.actions.trash) addLabelIds.push("TRASH");
-    if (filter.actions.star) addLabelIds.push("STARRED");
     if (filter.actions.neverSpam) removeLabelIds.push("SPAM");
     if (filter.actions.neverImportant) removeLabelIds.push("IMPORTANT");
 
-    const resource = { criteria: filter.criteria, action: {} };
-    if (addLabelIds.length > 0) resource.action.addLabelIds = addLabelIds;
-    if (removeLabelIds.length > 0)
-      resource.action.removeLabelIds = removeLabelIds;
+    const systemLabelIds = [];
+    if (filter.actions.trash) systemLabelIds.push("TRASH");
+    if (filter.actions.star) systemLabelIds.push("STARRED");
 
-    Gmail.Users.Settings.Filters.create(resource, "me");
-    created++;
+    const userLabelNames = filter.actions.labels
+      ? _expandLabelHierarchy(filter.actions.labels)
+      : [];
+
+    if (userLabelNames.length === 0) {
+      const action = {};
+      if (systemLabelIds.length > 0) action.addLabelIds = systemLabelIds;
+      if (removeLabelIds.length > 0) action.removeLabelIds = removeLabelIds;
+      Gmail.Users.Settings.Filters.create(
+        { criteria: filter.criteria, action: action },
+        "me",
+      );
+      created++;
+    } else {
+      for (const name of userLabelNames) {
+        const addLabelIds = [labelMap[name], ...systemLabelIds];
+        const action = { addLabelIds: addLabelIds };
+        if (removeLabelIds.length > 0) action.removeLabelIds = removeLabelIds;
+        Gmail.Users.Settings.Filters.create(
+          { criteria: filter.criteria, action: action },
+          "me",
+        );
+        created++;
+      }
+    }
   }
 
   Logger.log(`Created ${created} filters`);
