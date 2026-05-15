@@ -13,7 +13,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"devel@lists.fedoraproject.org"' },
     actions: {
-      labels: ["list/fedora/devel", "expireafter/30d"],
+      labels: ["list/fedora/devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -21,7 +21,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"cloud@lists.fedoraproject.org"' },
     actions: {
-      labels: ["list/fedora/cloud", "expireafter/30d"],
+      labels: ["list/fedora/cloud", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -29,7 +29,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"users@lists.fedoraproject.org"' },
     actions: {
-      labels: ["list/fedora/users", "expireafter/30d"],
+      labels: ["list/fedora/users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -37,7 +37,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"outage-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/outage", "expireafter/30d"],
+      labels: ["list/redhat/outage", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -45,7 +45,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rh-openstack-dev@redhat.com"' },
     actions: {
-      labels: ["list/redhat/rhos-dev", "expireafter/30d"],
+      labels: ["list/redhat/rhos-dev", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -53,7 +53,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"ansible-devel@googlegroups.com"' },
     actions: {
-      labels: ["list/ansible/ansible-devel", "expireafter/30d"],
+      labels: ["list/ansible/ansible-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -61,7 +61,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"ansible-project@googlegroups.com"' },
     actions: {
-      labels: ["list/ansible/ansible-project", "expireafter/30d"],
+      labels: ["list/ansible/ansible-project", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -101,7 +101,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"prod-dept@redhat.com"' },
     actions: {
-      labels: ["list/redhat/prod-dept", "expireafter/30d"],
+      labels: ["list/redhat/prod-dept", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -109,7 +109,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack@lists.openstack.org"' },
     actions: {
-      labels: ["list/openstack/users", "expireafter/30d"],
+      labels: ["list/openstack/users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -117,7 +117,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack-discuss@lists.openstack.org"' },
     actions: {
-      labels: ["list/openstack/discuss", "expireafter/30d"],
+      labels: ["list/openstack/discuss", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -125,7 +125,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"users@lists.libvirt.org"' },
     actions: {
-      labels: ["list/libvirt-users", "expireafter/30d"],
+      labels: ["list/libvirt-users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -133,7 +133,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"devel@lists.libvirt.org"' },
     actions: {
-      labels: ["list/libvirt-devel", "expireafter/30d"],
+      labels: ["list/libvirt-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -141,7 +141,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rhos-tech@redhat.com"' },
     actions: {
-      labels: ["list/redhat/rhos-tech", "expireafter/30d"],
+      labels: ["list/redhat/rhos-tech", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -149,7 +149,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rhos-prio-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/rhos-prio", "expireafter/30d"],
+      labels: ["list/redhat/rhos-prio", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -157,7 +157,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack-dev@lists.openstack.org"' },
     actions: {
-      labels: ["list/openstack/openstack-dev", "expireafter/30d"],
+      labels: ["list/openstack/openstack-dev", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -181,7 +181,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"cloud-strategy@redhat.com"' },
     actions: {
-      labels: ["list/redhat/cloud-strategy", "expireafter/30d"],
+      labels: ["list/redhat/cloud-strategy", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -189,7 +189,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"os-devel-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/os-devel", "expireafter/30d"],
+      labels: ["list/redhat/os-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -197,7 +197,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack-program@redhat.com"' },
     actions: {
-      labels: ["list/redhat/openstack-program", "expireafter/30d"],
+      labels: ["list/redhat/openstack-program", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -205,7 +205,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"systemd-devel@lists.freedesktop.org"' },
     actions: {
-      labels: ["list/systemd-devel", "expireafter/30d"],
+      labels: ["list/systemd-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -213,7 +213,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack-status@redhat.com"' },
     actions: {
-      labels: ["list/redhat/openstack-status", "expireafter/30d"],
+      labels: ["list/redhat/openstack-status", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -237,7 +237,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"git@vger.kernel.org"' },
     actions: {
-      labels: ["list/linux/kernel", "expireafter/30d"],
+      labels: ["list/linux/kernel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -245,7 +245,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openstack-operators@lists.openstack.org"' },
     actions: {
-      labels: ["list/openstack/openstack-operators", "expireafter/30d"],
+      labels: ["list/openstack/openstack-operators", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -253,7 +253,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"users@clusterlabs.org"' },
     actions: {
-      labels: ["list/pacemaker-users", "expireafter/30d"],
+      labels: ["list/pacemaker-users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -261,7 +261,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"users@lists.rdoproject.org"' },
     actions: {
-      labels: ["list/rdo/users", "expireafter/30d"],
+      labels: ["list/rdo/users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -269,7 +269,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"dev@lists.rdoproject.org"' },
     actions: {
-      labels: ["list/rdo/dev", "expireafter/30d"],
+      labels: ["list/rdo/dev", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -277,7 +277,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rdo-list@redhat.com"' },
     actions: {
-      labels: ["list/rdo-list", "expireafter/30d"],
+      labels: ["list/rdo-list", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -285,7 +285,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"cloud-dept-status@redhat.com"' },
     actions: {
-      labels: ["list/redhat/cloud-dept-status", "expireafter/30d"],
+      labels: ["list/redhat/cloud-dept-status", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -293,7 +293,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"python-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/python", "expireafter/30d"],
+      labels: ["list/redhat/python", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -301,7 +301,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"atomic-devel@projectatomic.io"' },
     actions: {
-      labels: ["list/atomic-devel", "expireafter/30d"],
+      labels: ["list/atomic-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -309,7 +309,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"centos-devel@centos.org"' },
     actions: {
-      labels: ["list/centos-devel", "expireafter/30d"],
+      labels: ["list/centos-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -317,7 +317,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"friday-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/friday-list", "expireafter/30d"],
+      labels: ["list/redhat/friday-list", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -325,7 +325,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"atomic@projectatomic.io"' },
     actions: {
-      labels: ["list/atomic", "expireafter/30d"],
+      labels: ["list/atomic", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -333,7 +333,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rh-ms-azure-users@redhat.com"' },
     actions: {
-      labels: ["list/redhat/rh-ms-azure-users", "expireafter/30d"],
+      labels: ["list/redhat/rh-ms-azure-users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -364,7 +364,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rsyslog@lists.adiscon.com"' },
     actions: {
-      labels: ["list/rsyslog", "expireafter/30d"],
+      labels: ["list/rsyslog", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -372,7 +372,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"eng-common-logging@redhat.com"' },
     actions: {
-      labels: ["list/redhat/eng-common-logging", "expireafter/30d"],
+      labels: ["list/redhat/eng-common-logging", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -383,13 +383,13 @@ const FILTERS = [
         '{list:"rh-moc-openstack@redhat.com" list:"redhat-moc@lists.massopen.cloud"}',
     },
     actions: {
-      labels: ["list/redhat/moc", "expireafter/30d"],
+      labels: ["list/redhat/moc", "!expireafter/30d"],
     },
   },
   {
     criteria: { query: 'list:"puppet-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/puppet", "expireafter/30d"],
+      labels: ["list/redhat/puppet", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -397,7 +397,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"usa-list@redhat.com"' },
     actions: {
-      labels: ["list/redhat/usa-list", "expireafter/30d"],
+      labels: ["list/redhat/usa-list", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -405,7 +405,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"openshift-sme@redhat.com"' },
     actions: {
-      labels: ["list/redhat/openshift-sme", "expireafter/30d"],
+      labels: ["list/redhat/openshift-sme", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -428,7 +428,7 @@ const FILTERS = [
   {
     criteria: { query: 'list:"rhelai-devel@redhat.com"' },
     actions: {
-      labels: ["list/redhat/rhelai-devel", "expireafter/30d"],
+      labels: ["list/redhat/rhelai-devel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -462,6 +462,14 @@ function _expandLabelHierarchy(labels) {
   const expanded = [];
   const seen = {};
   for (const label of labels) {
+    if (label.startsWith("!")) {
+      const name = label.slice(1);
+      if (!seen[name]) {
+        seen[name] = true;
+        expanded.push(name);
+      }
+      continue;
+    }
     const parts = label.split("/");
     for (let i = 1; i <= parts.length; i++) {
       const path = parts.slice(0, i).join("/");
