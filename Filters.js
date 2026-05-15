@@ -11,6 +11,13 @@ const FILTERS = [
     },
   },
   {
+    criteria: { query: "from:github.com" },
+    actions: {
+      labels: ["!archiveafter/2d"],
+      neverSpam: true,
+    },
+  },
+  {
     criteria: { query: 'list:"devel@lists.fedoraproject.org"' },
     actions: {
       labels: ["list/fedora/devel", "!expireafter/30d"],

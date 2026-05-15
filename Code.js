@@ -8,6 +8,7 @@ function _createTimeTriggers() {
 
   ScriptApp.newTrigger("_filterEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("_expireEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("_archiveEmail").timeBased().everyMinutes(30).create();
 
   console.log("Trigger created successfully.");
 }
@@ -35,6 +36,28 @@ function _expireEmail() {
     }
   }
   console.log(`Expired ${expired} threads`);
+}
+
+// Look for message with an archiveafter/RETENTION label and archive messages
+// older than the configured retention period.
+function _archiveEmail() {
+  let archived = 0;
+  for (const label of _getArchiveAfterLabels()) {
+    const value = label.getName().split("/").slice(1).join("/");
+    const maxAgeMs = _parseDuration(value);
+    const cutoff = new Date(Date.now() - maxAgeMs);
+    const before = _formatDateForSearch(cutoff);
+
+    // restrict this to in:inbox to avoid matching already archived messages
+    const query = `in:inbox label:${label.getName()} before:${before}`;
+    const threads = GmailApp.search(query, 0, 100);
+
+    for (const thread of threads) {
+      thread.moveToArchive();
+      archived++;
+    }
+  }
+  console.log(`Archived ${archived} threads`);
 }
 
 function _processGithubNotifications() {

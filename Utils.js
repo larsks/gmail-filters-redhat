@@ -45,6 +45,13 @@ function _getExpireAfterLabels() {
   );
 }
 
+// Returns all Gmail labels matching `archiveafter/*`.
+function _getArchiveAfterLabels() {
+  return GmailApp.getUserLabels().filter((label) =>
+    label.getName().match(/^archiveafter\/.+$/),
+  );
+}
+
 // Formats a Date as YYYY/MM/DD for use in Gmail search queries.
 function _formatDateForSearch(date) {
   const y = date.getFullYear();
