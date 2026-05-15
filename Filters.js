@@ -440,6 +440,14 @@ const FILTERS = [
       trash: true,
     },
   },
+  {
+    criteria: {
+      from: "(president OR sumlab OR bwell OR provost OR research OR livingourvalues OR bussw OR excellence OR sustainability)@bu.edu",
+    },
+    actions: {
+      trash: true,
+    },
+  },
 ];
 
 function _expandLabelHierarchy(labels) {
