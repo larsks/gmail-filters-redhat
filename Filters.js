@@ -491,25 +491,28 @@ function _createAllFilters() {
       ? _expandLabelHierarchy(filter.actions.labels)
       : [];
 
+    const resources = [];
     if (userLabelNames.length === 0) {
       const action = {};
       if (systemLabelIds.length > 0) action.addLabelIds = systemLabelIds;
       if (removeLabelIds.length > 0) action.removeLabelIds = removeLabelIds;
-      Gmail.Users.Settings.Filters.create(
-        { criteria: filter.criteria, action: action },
-        "me",
-      );
-      created++;
+      resources.push({ criteria: filter.criteria, action: action });
     } else {
       for (const name of userLabelNames) {
         const addLabelIds = [labelMap[name], ...systemLabelIds];
         const action = { addLabelIds: addLabelIds };
         if (removeLabelIds.length > 0) action.removeLabelIds = removeLabelIds;
-        Gmail.Users.Settings.Filters.create(
-          { criteria: filter.criteria, action: action },
-          "me",
-        );
+        resources.push({ criteria: filter.criteria, action: action });
+      }
+    }
+
+    for (const resource of resources) {
+      try {
+        Gmail.Users.Settings.Filters.create(resource, "me");
         created++;
+      } catch (e) {
+        Logger.log(`Failed to create filter: ${JSON.stringify(resource)}`);
+        throw e;
       }
     }
   }
