@@ -626,7 +626,7 @@ function _buildLabelMap() {
   return labelMap;
 }
 
-function _createAllFilters() {
+function createAllFilters() {
   _ensureLabelsExist();
   const labelMap = _buildLabelMap();
   const resources = _buildFilterResources(labelMap);
@@ -645,7 +645,7 @@ function _createAllFilters() {
   console.log(`Created ${created} filters`);
 }
 
-function _deleteAllFilters() {
+function deleteAllFilters() {
   const filters = Gmail.Users.Settings.Filters.list("me").filter || [];
   for (const filter of filters) {
     _deleteFilterWithRetry(filter.id);
@@ -653,7 +653,7 @@ function _deleteAllFilters() {
   console.log(`Deleted ${filters.length} filters`);
 }
 
-function _syncFilters() {
+function syncFilters() {
   _ensureLabelsExist();
 
   const labelMap = _buildLabelMap();

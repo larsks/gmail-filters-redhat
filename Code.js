@@ -1,26 +1,26 @@
 // Run this function to set up the triggers
-function _createTimeTriggers() {
+function createTimeTriggers() {
   // First, delete existing triggers to avoid duplicates
   const triggers = ScriptApp.getProjectTriggers();
 
   // biome-ignore lint/suspicious/useIterableCallbackReturn: we have no control over deleteTrigger
   triggers.forEach((t) => ScriptApp.deleteTrigger(t));
 
-  ScriptApp.newTrigger("_filterEmail").timeBased().everyMinutes(30).create();
-  ScriptApp.newTrigger("_expireEmail").timeBased().everyMinutes(30).create();
-  ScriptApp.newTrigger("_archiveEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
 
   console.log("Trigger created successfully.");
 }
 
-function _filterEmail() {
+function filterEmail() {
   _processCalendarResponses();
   _processGithubNotifications();
 }
 
 // Look for message with an expireafter/RETENTION label and delete messages
 // older than the configured retention period.
-function _expireEmail() {
+function expireEmail() {
   let expired = 0;
   for (const label of _getExpireAfterLabels()) {
     const value = label.getName().split("/").slice(1).join("/");
@@ -40,7 +40,7 @@ function _expireEmail() {
 
 // Look for message with an archiveafter/RETENTION label and archive messages
 // older than the configured retention period.
-function _archiveEmail() {
+function archiveEmail() {
   let archived = 0;
   for (const label of _getArchiveAfterLabels()) {
     const value = label.getName().split("/").slice(1).join("/");
