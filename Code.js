@@ -18,7 +18,7 @@ function _filterEmail() {
 }
 
 function _expireEmail() {
-  const threads = GmailApp.search("label:autoexpire", 0, 100);
+  const threads = GmailApp.search("label:expireafter", 0, 100);
   let expired = 0;
   for (const thread of threads) {
     const expireValue = _getExpireAfterValue(thread);
@@ -102,7 +102,7 @@ function _processCalendarResponses() {
     const labels = _getOrCreateLabels([
       parentLabel,
       labelPath,
-      "autoexpire",
+      "expireafter",
       "expireafter/5d",
     ]);
 
