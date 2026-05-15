@@ -97,8 +97,7 @@ function _processGithubNotifications() {
       // Extract github notification reason from message headers and use that
       // as a label.
       const msg = thread.getMessages()[0];
-      const headers = _getHeaderMap(msg);
-      const reason = headers["x-github-reason"]?.[0];
+      const reason = msg.getHeader("X-GitHub-Reason");
 
       if (reason) {
         labels.push(`${githubLabelName}/${reason}`);
@@ -116,8 +115,7 @@ function _processGithubNotifications() {
         }
       }
 
-      // Special labelling for issues to match existing label categories.
-      const is_issue = headers["x-github-issuestate"]?.[0];
+      const is_issue = msg.getHeader("X-GitHub-IssueState");
       if (is_issue) {
         labels.push("bug/github");
       }
