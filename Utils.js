@@ -38,7 +38,7 @@ function _getExpireAfterValue(thread) {
   return null;
 }
 
-function _createFilterWithRetry(resource, maxRetries = 3) {
+function _createFilterWithRetry(resource, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
       return Gmail.Users.Settings.Filters.create(resource, "me");
@@ -49,7 +49,7 @@ function _createFilterWithRetry(resource, maxRetries = 3) {
       console.log(
         `Retrying filter creation (attempt ${attempt}/${maxRetries}): ${e.message}`,
       );
-      Utilities.sleep(1000 * attempt);
+      Utilities.sleep(1000 * Math.pow(2, attempt - 1));
     }
   }
 }
