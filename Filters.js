@@ -614,7 +614,7 @@ function _createAllFilters() {
 function _deleteAllFilters() {
   const filters = Gmail.Users.Settings.Filters.list("me").filter || [];
   for (const filter of filters) {
-    Gmail.Users.Settings.Filters.remove("me", filter.id);
+    _deleteFilterWithRetry(filter.id);
   }
   console.log(`Deleted ${filters.length} filters`);
 }
@@ -637,14 +637,16 @@ function _syncFilters() {
   }
 
   let deleted = 0;
+  console.log("Deleting filters not in configuration");
   for (const [key, filter] of existingByFingerprint) {
     if (!desiredByFingerprint.has(key)) {
-      Gmail.Users.Settings.Filters.remove("me", filter.id);
+      _deleteFilterWithRetry(filter.id);
       deleted++;
     }
   }
 
   let created = 0;
+  console.log("Creating filters not in Gmail");
   for (const [key, resource] of desiredByFingerprint) {
     if (!existingByFingerprint.has(key)) {
       try {

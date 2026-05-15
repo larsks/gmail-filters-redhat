@@ -53,20 +53,36 @@ function _formatDateForSearch(date) {
   return `${y}/${m}/${d}`;
 }
 
-function _createFilterWithRetry(resource, maxRetries = 5) {
+function _withRetry(fn, label, maxRetries = 5) {
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      return Gmail.Users.Settings.Filters.create(resource, "me");
+      return fn();
     } catch (e) {
       if (attempt === maxRetries) {
         throw e;
       }
       console.log(
-        `Retrying filter creation (attempt ${attempt}/${maxRetries}): ${e.message}`,
+        `Retrying ${label} (attempt ${attempt}/${maxRetries}): ${e.message}`,
       );
       Utilities.sleep(1000 * 2 ** (attempt - 1));
     }
   }
+}
+
+function _createFilterWithRetry(resource, maxRetries = 5) {
+  return _withRetry(
+    () => Gmail.Users.Settings.Filters.create(resource, "me"),
+    "filter creation",
+    maxRetries,
+  );
+}
+
+function _deleteFilterWithRetry(filterId, maxRetries = 5) {
+  return _withRetry(
+    () => Gmail.Users.Settings.Filters.remove("me", filterId),
+    "filter deletion",
+    maxRetries,
+  );
 }
 
 // label cache to avoid redundant api queries
