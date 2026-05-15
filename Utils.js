@@ -85,6 +85,13 @@ function _deleteFilterWithRetry(filterId, maxRetries = 5) {
   );
 }
 
+function _applyLabels(thread, labelNames) {
+  const labels = _getOrCreateLabels(labelNames);
+  for (const label of labels) {
+    thread.addLabel(label);
+  }
+}
+
 // label cache to avoid redundant api queries
 const _labelCache = {};
 

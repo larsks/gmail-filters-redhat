@@ -38,38 +38,60 @@ function _expireEmail() {
 }
 
 function _processGithubNotifications() {
+  const reasonMap = {
+    security_alert: {
+      labels: ["expireafter/5d"],
+    },
+    ci_activity: {
+      labels: ["expireafter/5d"],
+      archive: true,
+    },
+    member_feature_requested: {
+      delete: true,
+    },
+    review_requested: {
+      labels: ["review/github"],
+    },
+  };
+
   console.log("Processing github notifications");
-  githubLabelText = "notification/github";
-  const searchQuery = `from:github.com -label:${githubLabelText}`;
-  const githubLabel = _getOrCreateLabel(githubLabelText);
+  const githubLabelName = "notification/github";
+  const searchQuery = `from:github.com -label:${githubLabelName}`;
   const threads = GmailApp.search(searchQuery, 0, 100);
   if (threads.length > 0) {
     for (const thread of threads) {
       const labels = [];
-      labels.push(githubLabel);
+      labels.push(githubLabelName);
 
       // Extract github notification reason from message headers and use that
       // as a label.
       const msg = thread.getMessages()[0];
       const headers = _getHeaderMap(msg);
-      reason = headers["x-github-reason"];
+      const reason = headers["x-github-reason"]?.[0];
 
       if (reason) {
-        labels.push(_getOrCreateLabel(`${githubLabelText}/${reason}`));
-        if (reason === "review_requested") {
-          labels.push(_getOrCreateLabel("review/github"));
+        labels.push(`${githubLabelName}/${reason}`);
+        const disposition = reasonMap[reason];
+        if (disposition) {
+          if (disposition.labels) {
+            labels.push(...disposition.labels);
+          }
+          if (disposition.archive) {
+            thread.moveToArchive();
+          }
+          if (disposition.delete) {
+            thread.moveToTrash();
+          }
         }
       }
 
       // Special labelling for issues to match existing label categories.
-      is_issue = headers["x-github-issuestate"];
+      const is_issue = headers["x-github-issuestate"]?.[0];
       if (is_issue) {
-        labels.push(_getOrCreateLabel("bug/github"));
+        labels.push("bug/github");
       }
 
-      for (const label of labels) {
-        thread.addLabel(label);
-      }
+      _applyLabels(thread, labels);
     }
     console.log(`Processed ${threads.length} github notifications`);
   }
