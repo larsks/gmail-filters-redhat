@@ -160,6 +160,14 @@ function _getOrCreateLabel(path) {
   return lastLabel;
 }
 
+function _getGithubRepo(msg) {
+  const listId = msg.getHeader("List-ID");
+  if (!listId) return null;
+  const match = listId.match(/^([^/]+\/[^/\s]+)\s+<[^>]+\.github\.com>$/);
+  if (!match) return null;
+  return match[1];
+}
+
 function _getOrCreateLabels(names) {
   const labels = [];
   for (const name of names) {

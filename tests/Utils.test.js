@@ -509,3 +509,39 @@ describe("_applyLabels", () => {
     assert.deepEqual(addedLabels, ["label1", "label2"]);
   });
 });
+
+describe("_getGithubRepo", () => {
+  let ctx;
+  beforeEach(() => {
+    ctx = loadUtils();
+  });
+
+  function makeMsg(listId) {
+    return { getHeader: (name) => (name === "List-ID" ? listId : null) };
+  }
+
+  it("extracts owner/repo from a standard List-ID header", () => {
+    const msg = makeMsg(
+      "osac-project/bare-metal-fulfillment-operator <bare-metal-fulfillment-operator.osac-project.github.com>",
+    );
+    assert.equal(
+      ctx._getGithubRepo(msg),
+      "osac-project/bare-metal-fulfillment-operator",
+    );
+  });
+
+  it("extracts owner/repo with different org and repo names", () => {
+    const msg = makeMsg("kubernetes/kubectl <kubectl.kubernetes.github.com>");
+    assert.equal(ctx._getGithubRepo(msg), "kubernetes/kubectl");
+  });
+
+  it("returns null when List-ID header is missing", () => {
+    const msg = { getHeader: () => null };
+    assert.equal(ctx._getGithubRepo(msg), null);
+  });
+
+  it("returns null when List-ID is not a GitHub list", () => {
+    const msg = makeMsg("some-mailing-list <list.example.com>");
+    assert.equal(ctx._getGithubRepo(msg), null);
+  });
+});

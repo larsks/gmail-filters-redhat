@@ -100,7 +100,7 @@ function _processGithubNotifications() {
       const reason = msg.getHeader("X-GitHub-Reason");
 
       if (reason) {
-        labels.push(`${githubLabelName}/${reason}`);
+        labels.push(`github/reason/${reason}`);
         const disposition = reasonMap[reason];
         if (disposition) {
           if (disposition.labels) {
@@ -117,7 +117,23 @@ function _processGithubNotifications() {
 
       const is_issue = msg.getHeader("X-GitHub-IssueState");
       if (is_issue) {
-        labels.push("bug/github");
+        labels.push("bug/github", "github/type/issue");
+      }
+
+      const is_pr = msg.getHeader("X-GitHub-PullRequestStatus");
+      if (is_pr) {
+        labels.push("github/type/pull_request");
+      }
+
+      const repo = _getGithubRepo(msg);
+      if (repo) {
+        labels.push(`github/repo/${repo}`);
+      }
+
+      // auto-expire bot messages
+      const sender = msg.getHeader("X-GitHub-Sender");
+      if (sender && sender.startsWith("coderabbit")) {
+        labels.push("bot", "expireafter/5d");
       }
 
       _applyLabels(thread, labels);

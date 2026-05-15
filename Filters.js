@@ -27,7 +27,7 @@ const FILTERS = [
   {
     criteria: { query: "from:notifications@github.com" },
     actions: {
-      labels: ["!notification/github", "!archiveafter/2d"],
+      labels: ["github", "!archiveafter/2d"],
       neverSpam: true,
     },
   },
