@@ -9,6 +9,7 @@ function createTimeTriggers() {
   ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("syncLabelVisibility").timeBased().everyDays(1).create();
 
   console.log("Trigger created successfully.");
 }
@@ -58,6 +59,13 @@ function archiveEmail() {
     }
   }
   console.log(`Archived ${archived} threads`);
+}
+
+function syncLabelVisibility() {
+  // pattern, messageList, labelList
+  _setLabelVisibility("^expireafter", "hide", "hide");
+  _setLabelVisibility("^archiveafter", "hide", "hide");
+  _setLabelVisibility("^list", "hide");
 }
 
 function _processGithubNotifications() {

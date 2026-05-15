@@ -360,6 +360,139 @@ describe("_getOrCreateLabels", () => {
   });
 });
 
+describe("_setLabelVisibility", () => {
+  function makeGmailMock(labels) {
+    const updated = [];
+    return {
+      mock: {
+        Gmail: {
+          Users: {
+            Labels: {
+              list: () => ({ labels }),
+              update: (resource, user, labelId) => {
+                updated.push({ resource, user, labelId });
+              },
+            },
+          },
+        },
+      },
+      updated,
+    };
+  }
+
+  it("sets messageListVisibility only", () => {
+    const { mock, updated } = makeGmailMock([
+      { id: "Label_1", name: "test-label" },
+    ]);
+    const ctx = loadUtils(mock);
+    ctx._setLabelVisibility("^test-label$", "hide");
+    assert.deepEqual(normalize(updated), [
+      {
+        resource: { messageListVisibility: "hide" },
+        user: "me",
+        labelId: "Label_1",
+      },
+    ]);
+  });
+
+  it("sets labelListVisibility only", () => {
+    const { mock, updated } = makeGmailMock([
+      { id: "Label_1", name: "test-label" },
+    ]);
+    const ctx = loadUtils(mock);
+    ctx._setLabelVisibility("^test-label$", undefined, "showIfUnread");
+    assert.deepEqual(normalize(updated), [
+      {
+        resource: { labelListVisibility: "labelShowIfUnread" },
+        user: "me",
+        labelId: "Label_1",
+      },
+    ]);
+  });
+
+  it("sets both visibility properties in a single update", () => {
+    const { mock, updated } = makeGmailMock([
+      { id: "Label_1", name: "test-label" },
+    ]);
+    const ctx = loadUtils(mock);
+    ctx._setLabelVisibility("^test-label$", "hide", "hide");
+    assert.deepEqual(normalize(updated), [
+      {
+        resource: {
+          messageListVisibility: "hide",
+          labelListVisibility: "labelHide",
+        },
+        user: "me",
+        labelId: "Label_1",
+      },
+    ]);
+  });
+
+  it("maps labelList values to API format", () => {
+    const { mock, updated } = makeGmailMock([
+      { id: "Label_1", name: "test-label" },
+    ]);
+    const ctx = loadUtils(mock);
+    ctx._setLabelVisibility("^test-label$", undefined, "show");
+    assert.deepEqual(normalize(updated), [
+      {
+        resource: { labelListVisibility: "labelShow" },
+        user: "me",
+        labelId: "Label_1",
+      },
+    ]);
+  });
+
+  it("updates all labels matching a regex pattern", () => {
+    const { mock, updated } = makeGmailMock([
+      { id: "Label_1", name: "expireafter/2d" },
+      { id: "Label_2", name: "expireafter/30d" },
+      { id: "Label_3", name: "inbox" },
+    ]);
+    const ctx = loadUtils(mock);
+    ctx._setLabelVisibility("^expireafter/", "hide");
+    assert.equal(updated.length, 2);
+    assert.equal(updated[0].labelId, "Label_1");
+    assert.equal(updated[1].labelId, "Label_2");
+  });
+
+  it("throws on invalid messageList value", () => {
+    const { mock } = makeGmailMock([{ id: "Label_1", name: "test" }]);
+    const ctx = loadUtils(mock);
+    assert.throws(
+      () => ctx._setLabelVisibility("^test$", "invalid"),
+      /Invalid messageList visibility/,
+    );
+  });
+
+  it("throws on invalid labelList value", () => {
+    const { mock } = makeGmailMock([{ id: "Label_1", name: "test" }]);
+    const ctx = loadUtils(mock);
+    assert.throws(
+      () => ctx._setLabelVisibility("^test$", undefined, "invalid"),
+      /Invalid labelList visibility/,
+    );
+  });
+
+  it("throws when neither messageList nor labelList is provided", () => {
+    const { mock } = makeGmailMock([{ id: "Label_1", name: "test" }]);
+    const ctx = loadUtils(mock);
+    assert.throws(
+      () => ctx._setLabelVisibility("^test$"),
+      /At least one of messageList or labelList is required/,
+    );
+  });
+
+  it("throws when no labels match the pattern", () => {
+    const { mock } = makeGmailMock([{ id: "Label_1", name: "other" }]);
+    const ctx = loadUtils(mock);
+    assert.throws(
+      () => ctx._setLabelVisibility("^nonexistent", "hide"),
+      /No labels matching pattern/,
+    );
+  });
+});
+
 describe("_applyLabels", () => {
   it("adds all labels to the thread", () => {
     const addedLabels = [];

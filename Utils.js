@@ -92,6 +92,37 @@ function _deleteFilterWithRetry(filterId, maxRetries = 5) {
   );
 }
 
+function _setLabelVisibility(pattern, messageList, labelList) {
+  if (messageList && !["show", "hide"].includes(messageList)) {
+    throw new Error(`Invalid messageList visibility: ${messageList}`);
+  }
+  if (labelList && !["show", "showIfUnread", "hide"].includes(labelList)) {
+    throw new Error(`Invalid labelList visibility: ${labelList}`);
+  }
+  if (!messageList && !labelList) {
+    throw new Error("At least one of messageList or labelList is required");
+  }
+
+  const regex = new RegExp(pattern);
+  const allLabels = Gmail.Users.Labels.list("me").labels;
+  const matched = allLabels.filter((l) => regex.test(l.name));
+  if (matched.length === 0) {
+    throw new Error(`No labels matching pattern: ${pattern}`);
+  }
+
+  const resource = {};
+  if (messageList) {
+    resource.messageListVisibility = messageList;
+  }
+  if (labelList) {
+    resource.labelListVisibility = `label${labelList[0].toUpperCase()}${labelList.slice(1)}`;
+  }
+
+  for (const label of matched) {
+    Gmail.Users.Labels.update(resource, "me", label.id);
+  }
+}
+
 function _applyLabels(thread, labelNames) {
   const labels = _getOrCreateLabels(labelNames);
   for (const label of labels) {
