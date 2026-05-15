@@ -1,4 +1,4 @@
-// Runi this function to set up the triggers
+// Run this function to set up the triggers
 function _createTimeTriggers() {
   // First, delete existing triggers to avoid duplicates
   const triggers = ScriptApp.getProjectTriggers();
@@ -44,7 +44,7 @@ function _relabelGithub() {
 
     is_issue = headers["x-github-issuestate"];
     if (is_issue) {
-      labels.push(_getOrCreateLabels("bug/github"));
+      labels.push(_getOrCreateLabel("bug/github"));
     }
 
     for (const label of labels) {
