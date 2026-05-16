@@ -1,3 +1,7 @@
+// This provides coarse versioning of this configuration. By including this in
+// labels and in search expressions, we can force re-labeling by incrementing
+// the version. This is currently used only by the github-related filtering,
+// but the same mechanism could be used elsewhere.
 const FILTERVERSION = 2;
 
 // Run this function to set up the triggers
@@ -19,11 +23,14 @@ function createTimeTriggers() {
   console.log("Trigger created successfully.");
 }
 
+// Run all mail filtering/classification tasks.
 function filterEmail() {
   _processCalendarResponses();
   _processGithubNotifications();
 }
 
+// Delete mail older than the retention period specified by a
+// expiredafter/RETENTION label.
 function expireEmail() {
   _processRetentionLabels(
     _getExpireAfterLabels(),
@@ -32,6 +39,8 @@ function expireEmail() {
   );
 }
 
+// Archive mail older than the retention period specified by a
+// archiveafter/RETENTION label.
 function archiveEmail() {
   _processRetentionLabels(
     _getArchiveAfterLabels(),
@@ -41,6 +50,10 @@ function archiveEmail() {
   );
 }
 
+// Implement the retention processing logic for expireEmail and
+// archiveEmail. Get a list of matching labels, and for each one
+// extract the retention period and use that to build a before:
+// term for a search expression.
 function _processRetentionLabels(labels, action, actionName, extraQuery) {
   let count = 0;
   for (const label of labels) {
@@ -68,6 +81,7 @@ function syncLabelVisibility() {
   _setLabelVisibility("^list", "hide");
 }
 
+// Handle labelling and disposition of email from github.
 function _processGithubNotifications() {
   console.log("Processing github notifications");
   const filterVersionLabel = `fv/${FILTERVERSION}`;
@@ -86,8 +100,7 @@ function _processGithubNotifications() {
   }
 }
 
-// Find and label google calendar notifications. We configure these to expire
-// after five days.
+// Find and label google calendar notifications.
 function _processCalendarResponses() {
   console.log("Processing calendar responses");
 

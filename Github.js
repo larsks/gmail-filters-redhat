@@ -1,3 +1,4 @@
+// Maps values of the x-github-reason header to message disposition.
 const GITHUB_REASON_MAP = {
   security_alert: {
     labels: ["expireafter/5d"],
@@ -14,6 +15,7 @@ const GITHUB_REASON_MAP = {
   },
 };
 
+// Determine labels and disposition of github messages.
 function _classifyGithubThread(thread, ...additionalLabels) {
   const githubLabel = "github";
   const labels = [githubLabel, ...additionalLabels];
@@ -62,6 +64,7 @@ function _classifyGithubThread(thread, ...additionalLabels) {
   return { labels, archive, trash };
 }
 
+// Extract the owner/repo component from the List-ID header.
 function _getGithubRepo(msg) {
   const listId = msg.getHeader("List-ID");
   if (!listId) return null;
