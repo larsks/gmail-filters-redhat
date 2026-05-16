@@ -124,14 +124,39 @@ function _setLabelVisibility(pattern, messageList, labelList) {
 }
 
 function _applyLabels(thread, labelNames) {
-  const labels = _getOrCreateLabels(labelNames);
-  for (const label of labels) {
-    thread.addLabel(label);
+  const uniqueNames = [...new Set(labelNames)];
+  _getOrCreateLabels(uniqueNames);
+
+  let map = _buildLabelMap();
+  let ids = uniqueNames.map((n) => map[n]);
+
+  if (ids.some((id) => !id)) {
+    _invalidateLabelMap();
+    map = _buildLabelMap();
+    ids = uniqueNames.map((n) => map[n]);
   }
+
+  Gmail.Users.Threads.modify({ addLabelIds: ids }, "me", thread.getId());
 }
 
 // label cache to avoid redundant api queries
 const _labelCache = {};
+
+let _labelIdMap = null;
+
+function _buildLabelMap() {
+  if (!_labelIdMap) {
+    _labelIdMap = {};
+    for (const label of Gmail.Users.Labels.list("me").labels) {
+      _labelIdMap[label.name] = label.id;
+    }
+  }
+  return _labelIdMap;
+}
+
+function _invalidateLabelMap() {
+  _labelIdMap = null;
+}
 
 // Helper function _to get or create a label. Handles nested labels automatically
 // and ensures that superior labels exist.
@@ -158,6 +183,99 @@ function _getOrCreateLabel(path) {
     lastLabel = label;
   }
   return lastLabel;
+}
+
+// Expands labels of the form `one/two/three` into `one`, `one/two`, and
+// `one/two/three`. We use this to create label hierarchies (which show up as
+// imap folders), so that something like `list/fedora/devel` will cause the
+// message to show in the `list` folder, the `list/fedora` folder, and the
+// `list/fedora/devel` folder.
+function _expandLabelHierarchy(labels) {
+  const expanded = [];
+  const seen = {};
+  for (const label of labels) {
+    if (label.startsWith("!")) {
+      const name = label.slice(1);
+      if (!seen[name]) {
+        seen[name] = true;
+        expanded.push(name);
+      }
+      continue;
+    }
+    const parts = label.split("/");
+    for (let i = 1; i <= parts.length; i++) {
+      const path = parts.slice(0, i).join("/");
+      if (!seen[path]) {
+        seen[path] = true;
+        expanded.push(path);
+      }
+    }
+  }
+  return expanded;
+}
+
+const GITHUB_REASON_MAP = {
+  security_alert: {
+    labels: ["expireafter/5d"],
+  },
+  ci_activity: {
+    labels: ["expireafter/5d"],
+    archive: true,
+  },
+  member_feature_requested: {
+    trash: true,
+  },
+  review_requested: {
+    labels: ["review/github"],
+  },
+};
+
+function _classifyGithubThread(thread, ...additionalLabels) {
+  const githubLabel = "github";
+  const labels = [githubLabel, ...additionalLabels];
+  let archive = false;
+  let trash = false;
+
+  const msg = thread.getMessages()[0];
+  const reason = msg.getHeader("X-GitHub-Reason");
+  if (reason) {
+    labels.push(`${githubLabel}/reason/${reason}`);
+    const disposition = GITHUB_REASON_MAP[reason];
+    if (disposition) {
+      if (disposition.labels) {
+        labels.push(...disposition.labels);
+      }
+      if (disposition.archive) {
+        archive = true;
+      }
+      if (disposition.trash) {
+        trash = true;
+      }
+    }
+  }
+
+  const isIssue = msg.getHeader("X-GitHub-IssueState");
+  if (isIssue) {
+    labels.push("bug/github", `${githubLabel}/type/issue`);
+  }
+
+  const isPr = msg.getHeader("X-GitHub-PullRequestStatus");
+  if (isPr) {
+    labels.push(`${githubLabel}/type/pull_request`);
+  }
+
+  const repo = _getGithubRepo(msg);
+  if (repo) {
+    const repoLabels = _expandLabelHierarchy([`${githubLabel}/repo/${repo}`]);
+    labels.push(...repoLabels);
+  }
+
+  const sender = msg.getHeader("X-GitHub-Sender");
+  if (sender && sender.startsWith("coderabbit")) {
+    labels.push("bot", "expireafter/5d");
+  }
+
+  return { labels, archive, trash };
 }
 
 function _getGithubRepo(msg) {

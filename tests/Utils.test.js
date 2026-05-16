@@ -493,20 +493,231 @@ describe("_setLabelVisibility", () => {
   });
 });
 
+describe("_buildLabelMap", () => {
+  it("builds a name-to-id map from Gmail labels", () => {
+    const ctx = loadUtils({
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => ({
+              labels: [
+                { name: "inbox", id: "INBOX" },
+                { name: "github", id: "Label_1" },
+              ],
+            }),
+          },
+        },
+      },
+    });
+    const result = ctx._buildLabelMap();
+    assert.deepEqual(normalize(result), {
+      inbox: "INBOX",
+      github: "Label_1",
+    });
+  });
+
+  it("caches the result across calls", () => {
+    let listCalls = 0;
+    const ctx = loadUtils({
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => {
+              listCalls++;
+              return { labels: [{ name: "a", id: "A" }] };
+            },
+          },
+        },
+      },
+    });
+    ctx._buildLabelMap();
+    ctx._buildLabelMap();
+    assert.equal(listCalls, 1);
+  });
+
+  it("refreshes after _invalidateLabelMap", () => {
+    let listCalls = 0;
+    const ctx = loadUtils({
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => {
+              listCalls++;
+              return { labels: [{ name: "a", id: "A" }] };
+            },
+          },
+        },
+      },
+    });
+    ctx._buildLabelMap();
+    ctx._invalidateLabelMap();
+    ctx._buildLabelMap();
+    assert.equal(listCalls, 2);
+  });
+});
+
 describe("_applyLabels", () => {
-  it("adds all labels to the thread", () => {
-    const addedLabels = [];
-    const thread = {
-      addLabel: (label) => addedLabels.push(label.getName()),
-    };
+  it("applies all labels in a single batch API call", () => {
+    let modifyCall = null;
+    const thread = { getId: () => "thread-123" };
     const ctx = loadUtils({
       GmailApp: {
         getUserLabelByName: (name) => ({ getName: () => name }),
         createLabel: () => assert.fail("should not create"),
       },
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => ({
+              labels: [
+                { name: "label1", id: "Label_1" },
+                { name: "label2", id: "Label_2" },
+              ],
+            }),
+          },
+          Threads: {
+            modify: (resource, userId, threadId) => {
+              modifyCall = { resource, userId, threadId };
+            },
+          },
+        },
+      },
     });
     ctx._applyLabels(thread, ["label1", "label2"]);
-    assert.deepEqual(addedLabels, ["label1", "label2"]);
+    assert.deepEqual(normalize(modifyCall), {
+      resource: { addLabelIds: ["Label_1", "Label_2"] },
+      userId: "me",
+      threadId: "thread-123",
+    });
+  });
+
+  it("deduplicates label names", () => {
+    let modifyCall = null;
+    const thread = { getId: () => "thread-1" };
+    const ctx = loadUtils({
+      GmailApp: {
+        getUserLabelByName: (name) => ({ getName: () => name }),
+        createLabel: () => assert.fail("should not create"),
+      },
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => ({
+              labels: [{ name: "dup", id: "Label_D" }],
+            }),
+          },
+          Threads: {
+            modify: (resource, userId, threadId) => {
+              modifyCall = { resource, userId, threadId };
+            },
+          },
+        },
+      },
+    });
+    ctx._applyLabels(thread, ["dup", "dup", "dup"]);
+    assert.deepEqual(normalize(modifyCall.resource), {
+      addLabelIds: ["Label_D"],
+    });
+  });
+
+  it("refreshes label map when a newly created label is missing", () => {
+    let listCalls = 0;
+    let modifyCall = null;
+    const thread = { getId: () => "thread-1" };
+    const ctx = loadUtils({
+      GmailApp: {
+        getUserLabelByName: (name) =>
+          name === "existing" ? { getName: () => name } : null,
+        createLabel: (name) => ({ getName: () => name }),
+      },
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => {
+              listCalls++;
+              const labels = [{ name: "existing", id: "Label_E" }];
+              if (listCalls > 1) {
+                labels.push({ name: "new-label", id: "Label_N" });
+              }
+              return { labels };
+            },
+          },
+          Threads: {
+            modify: (resource, userId, threadId) => {
+              modifyCall = { resource, userId, threadId };
+            },
+          },
+        },
+      },
+    });
+    ctx._applyLabels(thread, ["existing", "new-label"]);
+    assert.equal(listCalls, 2);
+    assert.deepEqual(normalize(modifyCall.resource), {
+      addLabelIds: ["Label_E", "Label_N"],
+    });
+  });
+});
+
+describe("_expandLabelHierarchy", () => {
+  let ctx;
+  beforeEach(() => {
+    ctx = loadUtils();
+  });
+
+  it("returns a simple label as-is", () => {
+    assert.deepEqual(normalize(ctx._expandLabelHierarchy(["inbox"])), [
+      "inbox",
+    ]);
+  });
+
+  it("expands a two-level label", () => {
+    assert.deepEqual(normalize(ctx._expandLabelHierarchy(["list/fedora"])), [
+      "list",
+      "list/fedora",
+    ]);
+  });
+
+  it("expands a three-level label", () => {
+    assert.deepEqual(
+      normalize(ctx._expandLabelHierarchy(["list/fedora/devel"])),
+      ["list", "list/fedora", "list/fedora/devel"],
+    );
+  });
+
+  it("does not expand labels prefixed with !", () => {
+    assert.deepEqual(
+      normalize(ctx._expandLabelHierarchy(["!expireafter/30d"])),
+      ["expireafter/30d"],
+    );
+  });
+
+  it("handles a mix of ! and regular labels", () => {
+    assert.deepEqual(
+      normalize(
+        ctx._expandLabelHierarchy(["list/fedora/devel", "!expireafter/30d"]),
+      ),
+      ["list", "list/fedora", "list/fedora/devel", "expireafter/30d"],
+    );
+  });
+
+  it("deduplicates across multiple labels sharing a prefix", () => {
+    assert.deepEqual(
+      normalize(
+        ctx._expandLabelHierarchy(["list/fedora/devel", "list/fedora/cloud"]),
+      ),
+      ["list", "list/fedora", "list/fedora/devel", "list/fedora/cloud"],
+    );
+  });
+
+  it("deduplicates ! labels that overlap with expanded labels", () => {
+    assert.deepEqual(
+      normalize(ctx._expandLabelHierarchy(["list/foo", "!list/foo"])),
+      ["list", "list/foo"],
+    );
+  });
+
+  it("returns empty array for empty input", () => {
+    assert.deepEqual(normalize(ctx._expandLabelHierarchy([])), []);
   });
 });
 
@@ -543,5 +754,96 @@ describe("_getGithubRepo", () => {
   it("returns null when List-ID is not a GitHub list", () => {
     const msg = makeMsg("some-mailing-list <list.example.com>");
     assert.equal(ctx._getGithubRepo(msg), null);
+  });
+});
+
+describe("_classifyGithubThread", () => {
+  function makeThread(headers) {
+    return {
+      getMessages: () => [
+        {
+          getHeader: (name) => headers[name] || null,
+        },
+      ],
+    };
+  }
+
+  function classify(headers) {
+    const ctx = loadUtils();
+    return normalize(ctx._classifyGithubThread(makeThread(headers), "fv/2"));
+  }
+
+  it("adds github and filter version labels", () => {
+    const result = classify({});
+    assert.deepEqual(result.labels, ["github", "fv/2"]);
+    assert.equal(result.archive, false);
+    assert.equal(result.trash, false);
+  });
+
+  it("adds reason label for a known reason", () => {
+    const result = classify({ "X-GitHub-Reason": "review_requested" });
+    assert.ok(result.labels.includes("github/reason/review_requested"));
+    assert.ok(result.labels.includes("review/github"));
+  });
+
+  it("adds reason label for an unknown reason", () => {
+    const result = classify({ "X-GitHub-Reason": "unknown_reason" });
+    assert.ok(result.labels.includes("github/reason/unknown_reason"));
+  });
+
+  it("sets archive for ci_activity", () => {
+    const result = classify({ "X-GitHub-Reason": "ci_activity" });
+    assert.equal(result.archive, true);
+    assert.ok(result.labels.includes("expireafter/5d"));
+  });
+
+  it("sets trash for member_feature_requested", () => {
+    const result = classify({
+      "X-GitHub-Reason": "member_feature_requested",
+    });
+    assert.equal(result.trash, true);
+  });
+
+  it("adds expireafter for security_alert", () => {
+    const result = classify({ "X-GitHub-Reason": "security_alert" });
+    assert.ok(result.labels.includes("expireafter/5d"));
+    assert.equal(result.archive, false);
+  });
+
+  it("detects issues via X-GitHub-IssueState", () => {
+    const result = classify({ "X-GitHub-IssueState": "open" });
+    assert.ok(result.labels.includes("bug/github"));
+    assert.ok(result.labels.includes("github/type/issue"));
+  });
+
+  it("detects PRs via X-GitHub-PullRequestStatus", () => {
+    const result = classify({ "X-GitHub-PullRequestStatus": "merged" });
+    assert.ok(result.labels.includes("github/type/pull_request"));
+  });
+
+  it("extracts repo labels from List-ID", () => {
+    const result = classify({
+      "List-ID": "kubernetes/kubectl <kubectl.kubernetes.github.com>",
+    });
+    assert.ok(result.labels.includes("github/repo"));
+    assert.ok(result.labels.includes("github/repo/kubernetes"));
+    assert.ok(result.labels.includes("github/repo/kubernetes/kubectl"));
+  });
+
+  it("auto-expires coderabbit bot messages", () => {
+    const result = classify({ "X-GitHub-Sender": "coderabbitai" });
+    assert.ok(result.labels.includes("bot"));
+    assert.ok(result.labels.includes("expireafter/5d"));
+  });
+
+  it("does not auto-expire non-bot senders", () => {
+    const result = classify({ "X-GitHub-Sender": "octocat" });
+    assert.ok(!result.labels.includes("bot"));
+  });
+
+  it("uses provided filter version label", () => {
+    const ctx = loadUtils();
+    const result = normalize(ctx._classifyGithubThread(makeThread({}), "fv/5"));
+    assert.ok(result.labels.includes("fv/5"));
   });
 });

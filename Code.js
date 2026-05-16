@@ -1,3 +1,5 @@
+const FILTERVERSION = 2;
+
 // Run this function to set up the triggers
 function createTimeTriggers() {
   // First, delete existing triggers to avoid duplicates
@@ -65,79 +67,24 @@ function syncLabelVisibility() {
   // pattern, messageList, labelList
   _setLabelVisibility("^expireafter", "hide", "hide");
   _setLabelVisibility("^archiveafter", "hide", "hide");
+  _setLabelVisibility("^fv", "hide", "hide");
   _setLabelVisibility("^list", "hide");
 }
 
 function _processGithubNotifications() {
-  const reasonMap = {
-    security_alert: {
-      labels: ["expireafter/5d"],
-    },
-    ci_activity: {
-      labels: ["expireafter/5d"],
-      archive: true,
-    },
-    member_feature_requested: {
-      delete: true,
-    },
-    review_requested: {
-      labels: ["review/github"],
-    },
-  };
-
   console.log("Processing github notifications");
-  const githubLabelName = "notification/github";
-  const searchQuery = `from:github.com -label:${githubLabelName}`;
-  const threads = GmailApp.search(searchQuery, 0, 100);
+  const filterVersionLabel = `fv/${FILTERVERSION}`;
+  const searchQuery = `from:github.com (-label:github OR -label:${filterVersionLabel})`;
+  const threads = GmailApp.search(searchQuery, 0, 400);
+
+  for (const thread of threads) {
+    const result = _classifyGithubThread(thread, filterVersionLabel);
+    _applyLabels(thread, result.labels);
+    if (result.archive) thread.moveToArchive();
+    if (result.trash) thread.moveToTrash();
+  }
+
   if (threads.length > 0) {
-    for (const thread of threads) {
-      const labels = [];
-      labels.push(githubLabelName);
-
-      // Extract github notification reason from message headers and use that
-      // as a label.
-      const msg = thread.getMessages()[0];
-      const reason = msg.getHeader("X-GitHub-Reason");
-
-      if (reason) {
-        labels.push(`github/reason/${reason}`);
-        const disposition = reasonMap[reason];
-        if (disposition) {
-          if (disposition.labels) {
-            labels.push(...disposition.labels);
-          }
-          if (disposition.archive) {
-            thread.moveToArchive();
-          }
-          if (disposition.delete) {
-            thread.moveToTrash();
-          }
-        }
-      }
-
-      const is_issue = msg.getHeader("X-GitHub-IssueState");
-      if (is_issue) {
-        labels.push("bug/github", "github/type/issue");
-      }
-
-      const is_pr = msg.getHeader("X-GitHub-PullRequestStatus");
-      if (is_pr) {
-        labels.push("github/type/pull_request");
-      }
-
-      const repo = _getGithubRepo(msg);
-      if (repo) {
-        labels.push(`github/repo/${repo}`);
-      }
-
-      // auto-expire bot messages
-      const sender = msg.getHeader("X-GitHub-Sender");
-      if (sender && sender.startsWith("coderabbit")) {
-        labels.push("bot", "expireafter/5d");
-      }
-
-      _applyLabels(thread, labels);
-    }
     console.log(`Processed ${threads.length} github notifications`);
   }
 }
@@ -167,11 +114,7 @@ function _processCalendarResponses() {
   // 2. Loop through each response type and process
   for (const subjectPrefix in responseTypes) {
     const labelPath = responseTypes[subjectPrefix].label;
-    const labels = _getOrCreateLabels([
-      parentLabel,
-      labelPath,
-      "expireafter/5d",
-    ]);
+    const labelNames = [parentLabel, labelPath, "expireafter/5d"];
 
     // Search query specific to this prefix
     const searchQuery = `subject:"${subjectPrefix}" has:attachment filename:invite.ics -label:calendar`;
@@ -179,9 +122,7 @@ function _processCalendarResponses() {
 
     if (threads.length > 0) {
       for (const thread of threads) {
-        for (const label of labels) {
-          thread.addLabel(label);
-        }
+        _applyLabels(thread, labelNames);
         if (responseTypes[subjectPrefix].archive) {
           thread.moveToArchive();
         }

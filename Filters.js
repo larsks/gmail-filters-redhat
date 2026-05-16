@@ -494,35 +494,6 @@ const FILTERS = [
   },
 ];
 
-// Expands labels of the form `one/two/three` into `one`, `one/two`, and
-// `one/two/three`. We use this to create label hierarchies (which show up as
-// imap folders), so that something like `list/fedora/devel` will cause the
-// message to show in the `list` folder, the `list/fedora` folder, and the
-// `list/fedora/devel` folder.
-function _expandLabelHierarchy(labels) {
-  const expanded = [];
-  const seen = {};
-  for (const label of labels) {
-    if (label.startsWith("!")) {
-      const name = label.slice(1);
-      if (!seen[name]) {
-        seen[name] = true;
-        expanded.push(name);
-      }
-      continue;
-    }
-    const parts = label.split("/");
-    for (let i = 1; i <= parts.length; i++) {
-      const path = parts.slice(0, i).join("/");
-      if (!seen[path]) {
-        seen[path] = true;
-        expanded.push(path);
-      }
-    }
-  }
-  return expanded;
-}
-
 // Iterate through our filter definitions and built gmail filter
 // api objects. Expand hierarchical labels (list/foo/bar).
 function _buildFilterResources(labelMap) {
@@ -622,16 +593,6 @@ function _ensureLabelsExist() {
       _getOrCreateLabels(_expandLabelHierarchy(filter.actions.labels));
     }
   }
-}
-
-// Build a map of label names to ids. This is used when creating filter api
-// objets, which need to reference labels by id rather than by name.
-function _buildLabelMap() {
-  const labelMap = {};
-  for (const label of Gmail.Users.Labels.list("me").labels) {
-    labelMap[label.name] = label.id;
-  }
-  return labelMap;
 }
 
 function createAllFilters() {

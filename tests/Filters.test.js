@@ -7,6 +7,7 @@ function normalize(obj) {
   return JSON.parse(JSON.stringify(obj));
 }
 
+const utilsSource = readFileSync("Utils.js", "utf8");
 const filtersSource = readFileSync("Filters.js", "utf8");
 
 function loadFilters(filters, extras = {}) {
@@ -17,84 +18,21 @@ function loadFilters(filters, extras = {}) {
   const context = vm.createContext({
     console,
     Gmail: {},
+    GmailApp: {},
     JSON,
     Object,
     Array,
     Map,
     Error,
     String,
-    ...extras,
+    parseInt,
+    RegExp,
   });
+  vm.runInContext(utilsSource, context);
   vm.runInContext(source, context);
+  Object.assign(context, extras);
   return context;
 }
-
-describe("_expandLabelHierarchy", () => {
-  let ctx;
-  it("returns a simple label as-is", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(normalize(ctx._expandLabelHierarchy(["inbox"])), [
-      "inbox",
-    ]);
-  });
-
-  it("expands a two-level label", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(normalize(ctx._expandLabelHierarchy(["list/fedora"])), [
-      "list",
-      "list/fedora",
-    ]);
-  });
-
-  it("expands a three-level label", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(
-      normalize(ctx._expandLabelHierarchy(["list/fedora/devel"])),
-      ["list", "list/fedora", "list/fedora/devel"],
-    );
-  });
-
-  it("does not expand labels prefixed with !", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(
-      normalize(ctx._expandLabelHierarchy(["!expireafter/30d"])),
-      ["expireafter/30d"],
-    );
-  });
-
-  it("handles a mix of ! and regular labels", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(
-      normalize(
-        ctx._expandLabelHierarchy(["list/fedora/devel", "!expireafter/30d"]),
-      ),
-      ["list", "list/fedora", "list/fedora/devel", "expireafter/30d"],
-    );
-  });
-
-  it("deduplicates across multiple labels sharing a prefix", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(
-      normalize(
-        ctx._expandLabelHierarchy(["list/fedora/devel", "list/fedora/cloud"]),
-      ),
-      ["list", "list/fedora", "list/fedora/devel", "list/fedora/cloud"],
-    );
-  });
-
-  it("deduplicates ! labels that overlap with expanded labels", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(
-      normalize(ctx._expandLabelHierarchy(["list/foo", "!list/foo"])),
-      ["list", "list/foo"],
-    );
-  });
-
-  it("returns empty array for empty input", () => {
-    ctx = loadFilters([]);
-    assert.deepEqual(normalize(ctx._expandLabelHierarchy([])), []);
-  });
-});
 
 describe("_buildFilterResources", () => {
   it("adds IMPORTANT to addLabelIds when alwaysImportant is set", () => {
@@ -593,32 +531,6 @@ describe("_ensureLabelsExist", () => {
     );
     ctx._ensureLabelsExist();
     assert.equal(calls.length, 0);
-  });
-});
-
-describe("_buildLabelMap", () => {
-  it("builds a name-to-id map from Gmail labels", () => {
-    const ctx = loadFilters([], {
-      Gmail: {
-        Users: {
-          Labels: {
-            list: () => ({
-              labels: [
-                { name: "INBOX", id: "INBOX" },
-                { name: "list/fedora", id: "Label_1" },
-                { name: "list/fedora/devel", id: "Label_2" },
-              ],
-            }),
-          },
-        },
-      },
-    });
-    const result = ctx._buildLabelMap();
-    assert.deepEqual(normalize(result), {
-      INBOX: "INBOX",
-      "list/fedora": "Label_1",
-      "list/fedora/devel": "Label_2",
-    });
   });
 });
 
