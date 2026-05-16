@@ -66,42 +66,6 @@ describe("_parseDuration", () => {
   });
 });
 
-describe("_getExpireAfterValue", () => {
-  let ctx;
-  beforeEach(() => {
-    ctx = loadUtils();
-  });
-
-  function makeThread(labelNames) {
-    return {
-      getLabels: () =>
-        labelNames.map((name) => ({
-          getName: () => name,
-        })),
-    };
-  }
-
-  it("returns the value from an expireafter label", () => {
-    const thread = makeThread(["expireafter/30d"]);
-    assert.equal(ctx._getExpireAfterValue(thread), "30d");
-  });
-
-  it("returns null when no expireafter label exists", () => {
-    const thread = makeThread(["inbox", "important"]);
-    assert.equal(ctx._getExpireAfterValue(thread), null);
-  });
-
-  it("returns the first matching label", () => {
-    const thread = makeThread(["inbox", "expireafter/7d", "expireafter/14d"]);
-    assert.equal(ctx._getExpireAfterValue(thread), "7d");
-  });
-
-  it("does not match bare expireafter without a value", () => {
-    const thread = makeThread(["expireafter/"]);
-    assert.equal(ctx._getExpireAfterValue(thread), null);
-  });
-});
-
 describe("_getExpireAfterLabels", () => {
   it("returns only expireafter labels", () => {
     const labels = [

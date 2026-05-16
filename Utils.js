@@ -25,19 +25,6 @@ function _parseDuration(duration) {
   return value * multipliers[unit];
 }
 
-// Extracts retention period from a label of the form `expireafter/<VALUE>`.
-function _getExpireAfterValue(thread) {
-  const labels = thread.getLabels();
-  for (const label of labels) {
-    const name = label.getName();
-    const match = name.match(/^expireafter\/(.+)$/);
-    if (match) {
-      return match[1];
-    }
-  }
-  return null;
-}
-
 // Returns all Gmail labels matching `expireafter/*`.
 function _getExpireAfterLabels() {
   return GmailApp.getUserLabels().filter((label) =>
