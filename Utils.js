@@ -123,6 +123,13 @@ function _applyLabels(thread, labelNames) {
     ids = uniqueNames.map((n) => map[n]);
   }
 
+  const missingLabels = uniqueNames.filter((n) => !map[n]);
+  if (missingLabels.length > 0) {
+    throw new Error(
+      `Failed to resolve label IDs for: ${missingLabels.join(", ")}`,
+    );
+  }
+
   Gmail.Users.Threads.modify({ addLabelIds: ids }, "me", thread.getId());
 }
 

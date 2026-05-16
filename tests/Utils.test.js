@@ -620,6 +620,32 @@ describe("_applyLabels", () => {
       addLabelIds: ["Label_E", "Label_N"],
     });
   });
+
+  it("throws with label names when IDs cannot be resolved", () => {
+    const thread = { getId: () => "thread-1" };
+    const ctx = loadUtils({
+      GmailApp: {
+        getUserLabelByName: () => null,
+        createLabel: (name) => ({ getName: () => name }),
+      },
+      Gmail: {
+        Users: {
+          Labels: {
+            list: () => ({
+              labels: [{ name: "known", id: "Label_K" }],
+            }),
+          },
+          Threads: {
+            modify: () => assert.fail("should not call modify"),
+          },
+        },
+      },
+    });
+    assert.throws(
+      () => ctx._applyLabels(thread, ["known", "ghost1", "ghost2"]),
+      /Failed to resolve label IDs for: ghost1, ghost2/,
+    );
+  });
 });
 
 describe("_expandLabelHierarchy", () => {
