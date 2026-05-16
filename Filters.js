@@ -5,7 +5,7 @@
 // want this feature and intend to only apply the label "one/two/three", prefix the label with "!":
 // "!one/two/three".
 //
-const FILTERS = [
+var FILTERS = [
   {
     // This matches message that mention some variant of my name but that aren't actually to: me
     // and that are not calendar invites.

@@ -11,10 +11,6 @@ const utilsSource = readFileSync("Utils.js", "utf8");
 const filtersSource = readFileSync("Filters.js", "utf8");
 
 function loadFilters(filters, extras = {}) {
-  const source = filtersSource.replace(
-    /^const FILTERS = \[[\s\S]*?^\];/m,
-    `const FILTERS = ${JSON.stringify(filters)};`,
-  );
   const context = vm.createContext({
     console,
     Gmail: {},
@@ -29,7 +25,8 @@ function loadFilters(filters, extras = {}) {
     RegExp,
   });
   vm.runInContext(utilsSource, context);
-  vm.runInContext(source, context);
+  vm.runInContext(filtersSource, context);
+  context.FILTERS = filters;
   Object.assign(context, extras);
   return context;
 }
