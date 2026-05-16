@@ -11,7 +11,10 @@ function createTimeTriggers() {
   ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(15).create();
   ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
-  ScriptApp.newTrigger("syncLabelVisibility").timeBased().everyDays(1).create();
+  ScriptApp.newTrigger("syncLabelVisibility")
+    .timeBased()
+    .everyHours(4)
+    .create();
 
   console.log("Trigger created successfully.");
 }
