@@ -8,7 +8,7 @@ function createTimeTriggers() {
   // biome-ignore lint/suspicious/useIterableCallbackReturn: we have no control over deleteTrigger
   triggers.forEach((t) => ScriptApp.deleteTrigger(t));
 
-  ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(15).create();
   ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("syncLabelVisibility").timeBased().everyDays(1).create();
@@ -21,46 +21,40 @@ function filterEmail() {
   _processGithubNotifications();
 }
 
-// Look for message with an expireafter/RETENTION label and delete messages
-// older than the configured retention period.
 function expireEmail() {
-  let expired = 0;
-  for (const label of _getExpireAfterLabels()) {
-    const value = label.getName().split("/").slice(1).join("/");
-    const maxAgeMs = _parseDuration(value);
-    const cutoff = new Date(Date.now() - maxAgeMs);
-    const before = _formatDateForSearch(cutoff);
-    const query = `label:${label.getName()} before:${before}`;
-    const threads = GmailApp.search(query, 0, 100);
-
-    for (const thread of threads) {
-      thread.moveToTrash();
-      expired++;
-    }
-  }
-  console.log(`Expired ${expired} threads`);
+  _processRetentionLabels(
+    _getExpireAfterLabels(),
+    (t) => t.moveToTrash(),
+    "Expired",
+  );
 }
 
-// Look for message with an archiveafter/RETENTION label and archive messages
-// older than the configured retention period.
 function archiveEmail() {
-  let archived = 0;
-  for (const label of _getArchiveAfterLabels()) {
+  _processRetentionLabels(
+    _getArchiveAfterLabels(),
+    (t) => t.moveToArchive(),
+    "Archived",
+    "in:inbox",
+  );
+}
+
+function _processRetentionLabels(labels, action, actionName, extraQuery) {
+  let count = 0;
+  for (const label of labels) {
     const value = label.getName().split("/").slice(1).join("/");
     const maxAgeMs = _parseDuration(value);
     const cutoff = new Date(Date.now() - maxAgeMs);
     const before = _formatDateForSearch(cutoff);
-
-    // restrict this to in:inbox to avoid matching already archived messages
-    const query = `in:inbox label:${label.getName()} before:${before}`;
-    const threads = GmailApp.search(query, 0, 100);
+    const parts = [`label:${label.getName()}`, `before:${before}`];
+    if (extraQuery) parts.push(extraQuery);
+    const threads = GmailApp.search(parts.join(" "), 0, 100);
 
     for (const thread of threads) {
-      thread.moveToArchive();
-      archived++;
+      action(thread);
+      count++;
     }
   }
-  console.log(`Archived ${archived} threads`);
+  console.log(`${actionName} ${count} threads`);
 }
 
 function syncLabelVisibility() {
@@ -75,7 +69,7 @@ function _processGithubNotifications() {
   console.log("Processing github notifications");
   const filterVersionLabel = `fv/${FILTERVERSION}`;
   const searchQuery = `from:github.com (-label:github OR -label:${filterVersionLabel})`;
-  const threads = GmailApp.search(searchQuery, 0, 400);
+  const threads = GmailApp.search(searchQuery, 0, 100);
 
   for (const thread of threads) {
     const result = _classifyGithubThread(thread, filterVersionLabel);
