@@ -57,7 +57,10 @@ function _classifyGithubThread(thread, ...additionalLabels) {
   }
 
   const sender = msg.getHeader("X-GitHub-Sender");
-  if (sender && sender.startsWith("coderabbit")) {
+  if (
+    sender &&
+    (sender.startsWith("dependabot") || sender.startsWith("coderabbit"))
+  ) {
     labels.push("bot", "expireafter/5d");
   }
 
