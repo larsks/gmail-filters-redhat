@@ -18,6 +18,48 @@ var FILTERS = [
     },
   },
   {
+    criteria: {
+      query: `has:attachment filename:invite.ics subject:"Accepted:"`,
+    },
+    actions: {
+      archive: true,
+      labels: ["calendar/accepted", "!expireafter/5d"],
+    },
+  },
+  {
+    criteria: {
+      query: `has:attachment filename:invite.ics subject:"Canceled"`,
+    },
+    actions: {
+      labels: ["calendar/canceled", "!expireafter/5d"],
+    },
+  },
+  {
+    criteria: {
+      query: `has:attachment filename:invite.ics subject:"Declined:"`,
+    },
+    actions: {
+      archive: true,
+      labels: ["calendar/declined", "!expireafter/5d"],
+    },
+  },
+  {
+    criteria: {
+      query: `has:attachment filename:invite.ics subject:"Invitation:"`,
+    },
+    actions: {
+      labels: ["calendar/invitation", "!expireafter/5d"],
+    },
+  },
+  {
+    criteria: {
+      query: `has:attachment filename:invite.ics`,
+    },
+    actions: {
+      labels: ["calendar/other", "!expireafter/5d"],
+    },
+  },
+  {
     criteria: { query: "list:bss-list.redhat.com bicycle" },
     actions: {
       alwaysImportant: true,

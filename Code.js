@@ -105,39 +105,48 @@ function _processCalendarResponses() {
   console.log("Processing calendar responses");
 
   const parentLabel = "calendar";
-  // 1. Define the relationship between subjects and labels
-  const responseTypes = {
-    "Declined:": {
-      label: `${parentLabel}/declined`,
-      archive: true,
-    },
-    "Accepted:": {
-      label: `${parentLabel}/accepted`,
-      archive: true,
-    },
-    "Invitation:": {
-      label: `${parentLabel}/invitation`,
-      archive: false,
-    },
-  };
 
-  // 2. Loop through each response type and process
-  for (const subjectPrefix in responseTypes) {
-    const labelPath = responseTypes[subjectPrefix].label;
-    const labelNames = [parentLabel, labelPath, "expireafter/5d"];
+  // Map calendar message subjects to labels and optional disposition.
+  const subjectMap = [
+    [/^Canceled/, { label: "canceled" }],
+    [/^Declined/, { label: "declined", archive: true }],
+    [/^Accepted/, { label: "accepted", archive: true }],
+    [/^Invitation/, { label: "invitation" }],
+  ];
 
-    // Search query specific to this prefix
-    const searchQuery = `subject:"${subjectPrefix}" has:attachment filename:invite.ics -label:calendar`;
-    const threads = GmailApp.search(searchQuery, 0, 100);
+  // The only reliable way to identify calendar message seems to be looking for
+  // messages that have an `invite.ics` attachment.
+  const searchQuery = `has:attachment filename:invite.ics -label:${parentLabel}`;
+  const threads = GmailApp.search(searchQuery, 0, 100);
 
-    if (threads.length > 0) {
-      for (const thread of threads) {
-        _applyLabels(thread, labelNames);
-        if (responseTypes[subjectPrefix].archive) {
-          thread.moveToArchive();
+  if (threads.length > 0) {
+    const counts = Object.fromEntries([
+      ...subjectMap.map(([, config]) => [config.label, 0]),
+      ["other", 0],
+    ]);
+
+    for (const thread of threads) {
+      const labelNames = [parentLabel, "expireafter/5d"];
+      const subject = thread.getFirstMessageSubject();
+      let sublabel = "other";
+
+      for (const [pattern, config] of subjectMap) {
+        if (pattern.test(subject)) {
+          sublabel = config.label;
+          if (config.archive) thread.moveToArchive();
+          if (config.trash) thread.moveToTrash();
+          break;
         }
       }
-      console.log(`Processed ${threads.length} threads for: ${subjectPrefix}`);
+      labelNames.push(`${parentLabel}/${sublabel}`);
+      counts[sublabel] = (counts[sublabel] || 0) + 1;
+
+      _applyLabels(thread, labelNames);
     }
+
+    const summary = Object.entries(counts)
+      .map(([k, v]) => `${k}=${v}`)
+      .join(", ");
+    console.log(`Processed ${threads.length} calendar threads (${summary})`);
   }
 }

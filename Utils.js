@@ -110,6 +110,8 @@ function _setLabelVisibility(pattern, messageList, labelList) {
   }
 }
 
+// Given a list of label names in `labelNames`, ensure that those labels exist
+// and apply them to all the messages in `thread`.
 function _applyLabels(thread, labelNames) {
   const uniqueNames = [...new Set(labelNames)];
   _getOrCreateLabels(uniqueNames);
