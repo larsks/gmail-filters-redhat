@@ -658,6 +658,7 @@ function syncFilters() {
       } catch (e) {
         throw new Error(
           `Failed to create filter: ${e.message}\n${JSON.stringify(resource)}`,
+          { cause: e },
         );
       }
     }

@@ -1,3 +1,4 @@
+import js from "@eslint/js";
 import googleappsscript from "eslint-plugin-googleappsscript";
 import fs from "fs";
 import path from "path";
@@ -21,16 +22,28 @@ export default [
   {
     ignores: ["eslint.config.js"],
   },
+  js.configs.recommended,
   {
-    files: ["**/*.js"],
+    files: ["*.js"],
     languageOptions: {
+      sourceType: "script",
       globals: {
         ...googleappsscript.environments.googleappsscript.globals,
         ...getProjectGlobals(),
       },
     },
     rules: {
-      "no-undef": "error",
+      "no-unused-vars": ["error", { vars: "local" }],
+      "no-redeclare": ["error", { builtinGlobals: false }],
+    },
+  },
+  {
+    files: ["tests/**/*.js"],
+    languageOptions: {
+      sourceType: "module",
+      globals: {
+        console: "readonly",
+      },
     },
   },
 ];

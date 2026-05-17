@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { beforeEach, describe, it, mock } from "node:test";
+import { beforeEach, describe, it } from "node:test";
 import vm from "node:vm";
 
 // vm.createContext gives the sandbox its own built-in constructors, so arrays
