@@ -63,7 +63,7 @@ function _processRetentionLabels(labels, action, actionName, extraQuery) {
     const before = _formatDateForSearch(cutoff);
     const parts = [`label:${label.getName()}`, `before:${before}`];
     if (extraQuery) parts.push(extraQuery);
-    const threads = GmailApp.search(parts.join(" "), 0, 100);
+    const threads = GmailApp.search(parts.join(" "), 0, 200);
 
     for (const thread of threads) {
       action(thread);
