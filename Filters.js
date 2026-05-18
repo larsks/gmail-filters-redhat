@@ -1,3 +1,19 @@
+// These values are used to build the "chosen" filter.
+var THE_CHOSEN_FEW = [
+  "from:ajamias",
+  "from:dystewar",
+  "from:hdempsey",
+  "from:hsap",
+  "from:istaplet",
+  "from:knikolla",
+  "from:memalhot",
+  "from:msd",
+  "from:naved001",
+  "from:okrieger",
+  "from:tsalawu",
+  "from:tzumainn",
+];
+
 // IMPORTANT NOTE REGARDING LABELS:
 //
 // A hiearchical label of the form one/two/three will result in the creation of *three* filters, one
@@ -526,7 +542,21 @@ var FILTERS = [
       trash: true,
     },
   },
+
+  buildChosenFilter(),
 ];
+
+function buildChosenFilter() {
+  const query = THE_CHOSEN_FEW.join(" OR ");
+  return {
+    criteria: {
+      query: query,
+    },
+    actions: {
+      labels: ["chosen"],
+    },
+  };
+}
 
 // Iterate through our filter definitions and built gmail filter
 // api objects. Expand hierarchical labels (list/foo/bar).
