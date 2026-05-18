@@ -26,15 +26,15 @@ function _classifyGithubThread(thread, ...additionalLabels) {
   const reason = msg.getHeader("X-GitHub-Reason");
   if (reason) {
     labels.push(`${githubLabel}/reason/${reason}`);
-    const disposition = GITHUB_REASON_MAP[reason];
-    if (disposition) {
-      if (disposition.labels) {
-        labels.push(...disposition.labels);
+    const matched = GITHUB_REASON_MAP[reason];
+    if (matched) {
+      if (matched.labels) {
+        labels.push(...matched.labels);
       }
-      if (disposition.archive) {
+      if (matched.archive) {
         archive = true;
       }
-      if (disposition.trash) {
+      if (matched.trash) {
         trash = true;
       }
     }
