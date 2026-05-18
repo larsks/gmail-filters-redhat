@@ -23,6 +23,15 @@ var THE_CHOSEN_FEW = [
 //
 var FILTERS = [
   {
+    criteria: {
+      query: `from:esi@massopen.cloud subject:"Leased Nodes"`,
+    },
+    actions: {
+      archive: true,
+      labels: ["expireafter/5d"],
+    },
+  },
+  {
     // This matches message that mention some variant of my name but that aren't actually to: me
     // and that are not calendar invites.
     criteria: {
