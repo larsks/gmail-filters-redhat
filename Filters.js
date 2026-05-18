@@ -52,14 +52,6 @@ var FILTERS = [
     },
   },
   {
-    criteria: {
-      query: `has:attachment filename:invite.ics`,
-    },
-    actions: {
-      labels: ["calendar/other", "!expireafter/5d"],
-    },
-  },
-  {
     criteria: { query: "list:bss-list.redhat.com bicycle" },
     actions: {
       alwaysImportant: true,
