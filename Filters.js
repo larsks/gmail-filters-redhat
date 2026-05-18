@@ -24,6 +24,14 @@ var THE_CHOSEN_FEW = [
 var FILTERS = [
   {
     criteria: {
+      query: `from:azaalouk subject:openshell`,
+    },
+    actions: {
+      archive: true,
+    },
+  },
+  {
+    criteria: {
       query: `from:esi@massopen.cloud subject:"Leased Nodes"`,
     },
     actions: {
