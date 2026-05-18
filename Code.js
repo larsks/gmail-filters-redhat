@@ -79,6 +79,8 @@ function syncLabelVisibility() {
   _setLabelVisibility("^archiveafter", "hide", "hide");
   _setLabelVisibility("^fv", "hide", "hide");
   _setLabelVisibility("^list", "hide");
+  _setLabelVisibility("^calendar/", "hide");
+  _setLabelVisibility("^github/", "hide");
 }
 
 // Handle labelling and disposition of email from github.
