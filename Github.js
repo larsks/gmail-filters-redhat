@@ -16,9 +16,9 @@ const GITHUB_REASON_MAP = {
 };
 
 // Determine labels and disposition of github messages.
-function _classifyGithubThread(thread, ...additionalLabels) {
+function _classifyGithubThread(thread) {
   const githubLabel = "github";
-  const labels = [githubLabel, ...additionalLabels];
+  const labels = [githubLabel];
   let archive = false;
   let trash = false;
 

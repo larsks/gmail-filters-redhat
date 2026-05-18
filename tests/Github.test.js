@@ -76,13 +76,6 @@ describe("_classifyGithubThread", () => {
     return normalize(ctx._classifyGithubThread(makeThread(headers), "fv/2"));
   }
 
-  it("adds github and filter version labels", () => {
-    const result = classify({});
-    assert.deepEqual(result.labels, ["github", "fv/2"]);
-    assert.equal(result.archive, false);
-    assert.equal(result.trash, false);
-  });
-
   it("adds reason label for a known reason", () => {
     const result = classify({ "X-GitHub-Reason": "review_requested" });
     assert.ok(result.labels.includes("github/reason/review_requested"));
@@ -142,11 +135,5 @@ describe("_classifyGithubThread", () => {
   it("does not auto-expire non-bot senders", () => {
     const result = classify({ "X-GitHub-Sender": "octocat" });
     assert.ok(!result.labels.includes("bot"));
-  });
-
-  it("uses provided filter version label", () => {
-    const ctx = loadGithub();
-    const result = normalize(ctx._classifyGithubThread(makeThread({}), "fv/5"));
-    assert.ok(result.labels.includes("fv/5"));
   });
 });

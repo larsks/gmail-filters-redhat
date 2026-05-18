@@ -1,8 +1,8 @@
 // This provides coarse versioning of this configuration. By including this in
 // labels and in search expressions, we can force re-labeling by incrementing
-// the version. This is currently used only by the github-related filtering,
-// but the same mechanism could be used elsewhere.
+// the version.
 const FILTERVERSION = 2;
+const FILTERVERSIONLABEL = `fv/${FILTERVERSION}`;
 
 // Run this function to set up the triggers
 function createTimeTriggers() {
@@ -84,13 +84,12 @@ function syncLabelVisibility() {
 // Handle labelling and disposition of email from github.
 function _processGithubNotifications() {
   console.log("Processing github notifications");
-  const filterVersionLabel = `fv/${FILTERVERSION}`;
-  const searchQuery = `from:github.com (-label:github OR -label:${filterVersionLabel})`;
+  const searchQuery = `from:github.com (-label:github OR -label:${FILTERVERSIONLABEL})`;
   const threads = GmailApp.search(searchQuery, 0, 100);
 
   for (const thread of threads) {
-    const result = _classifyGithubThread(thread, filterVersionLabel);
-    _applyLabels(thread, result.labels);
+    const result = _classifyGithubThread(thread);
+    _applyLabels(thread, result.labels.concat(FILTERVERSIONLABEL));
     if (result.archive) thread.moveToArchive();
     if (result.trash) thread.moveToTrash();
   }
@@ -116,7 +115,7 @@ function _processCalendarResponses() {
 
   // The only reliable way to identify calendar message seems to be looking for
   // messages that have an `invite.ics` attachment.
-  const searchQuery = `has:attachment filename:invite.ics -label:${parentLabel}`;
+  const searchQuery = `has:attachment filename:invite.ics (-label:${parentLabel} OR -label:${FILTERVERSIONLABEL})`;
   const threads = GmailApp.search(searchQuery, 0, 100);
 
   if (threads.length > 0) {
@@ -126,7 +125,7 @@ function _processCalendarResponses() {
     ]);
 
     for (const thread of threads) {
-      const labelNames = [parentLabel, "expireafter/5d"];
+      const labelNames = [FILTERVERSIONLABEL, parentLabel, "expireafter/5d"];
       const subject = thread.getFirstMessageSubject();
       let sublabel = "other";
 
