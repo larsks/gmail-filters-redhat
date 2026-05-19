@@ -13,7 +13,7 @@ function createTimeTriggers() {
   triggers.forEach((t) => ScriptApp.deleteTrigger(t));
 
   ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(15).create();
-  ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(30).create();
+  ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(10).create();
   ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
   ScriptApp.newTrigger("syncLabelVisibility")
     .timeBased()
