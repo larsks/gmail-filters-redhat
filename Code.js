@@ -5,22 +5,27 @@ const FILTERVERSION = 2;
 const FILTERVERSIONLABEL = `fv/${FILTERVERSION}`;
 
 // Run this function to set up the triggers
+const TRIGGERS = [
+  { fn: "filterEmail", minutes: 15 },
+  { fn: "expireEmail", minutes: 10 },
+  { fn: "archiveEmail", minutes: 30 },
+  { fn: "syncLabelVisibility", hours: 4 },
+];
+
 function createTimeTriggers() {
-  // First, delete existing triggers to avoid duplicates
   const triggers = ScriptApp.getProjectTriggers();
 
   // biome-ignore lint/suspicious/useIterableCallbackReturn: we have no control over deleteTrigger
   triggers.forEach((t) => ScriptApp.deleteTrigger(t));
 
-  ScriptApp.newTrigger("filterEmail").timeBased().everyMinutes(15).create();
-  ScriptApp.newTrigger("expireEmail").timeBased().everyMinutes(10).create();
-  ScriptApp.newTrigger("archiveEmail").timeBased().everyMinutes(30).create();
-  ScriptApp.newTrigger("syncLabelVisibility")
-    .timeBased()
-    .everyHours(4)
-    .create();
-
-  console.log("Trigger created successfully.");
+  for (const { fn, minutes, hours } of TRIGGERS) {
+    const builder = ScriptApp.newTrigger(fn).timeBased();
+    if (minutes) builder.everyMinutes(minutes);
+    else if (hours) builder.everyHours(hours);
+    builder.create();
+    const interval = minutes ? `${minutes}m` : `${hours}h`;
+    console.log(`Created trigger: ${fn} every ${interval}`);
+  }
 }
 
 // Run all mail filtering/classification tasks.
