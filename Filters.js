@@ -16,12 +16,29 @@ var THE_CHOSEN_FEW = [
 
 // IMPORTANT NOTE REGARDING LABELS:
 //
-// A hiearchical label of the form one/two/three will result in the creation of *three* filters, one
+// A hierarchical label of the form one/two/three will result in the creation of *three* filters, one
 // adding label "one", one adding label "one/two", and one adding the label "one/two/three". If you don't
 // want this feature and intend to only apply the label "one/two/three", prefix the label with "!":
 // "!one/two/three".
 //
 var FILTERS = [
+  {
+    criteria: {
+      query: "from:ezcater",
+    },
+    actions: {
+      labels: ["food"],
+    },
+  },
+  {
+    criteria: {
+      query:
+        'from:ezcater (subject:"order confirmed" OR subject:"order confirmation")',
+    },
+    actions: {
+      archive: true,
+    },
+  },
   {
     criteria: {
       query: `from:azaalouk subject:openshell`,
