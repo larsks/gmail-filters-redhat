@@ -156,22 +156,6 @@ var FILTERS = [
     },
   },
   {
-    criteria: { query: 'list:"ansible-devel@googlegroups.com"' },
-    actions: {
-      labels: ["list/ansible/ansible-devel", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"ansible-project@googlegroups.com"' },
-    actions: {
-      labels: ["list/ansible/ansible-project", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
     criteria: { query: 'list:"memo-list@redhat.com"' },
     actions: {
       labels: ["list/redhat/memo-list"],
@@ -227,14 +211,6 @@ var FILTERS = [
     criteria: { query: 'list:"prod-dept@redhat.com"' },
     actions: {
       labels: ["list/redhat/prod-dept", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"openstack@lists.openstack.org"' },
-    actions: {
-      labels: ["list/openstack/users", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -336,14 +312,6 @@ var FILTERS = [
     },
   },
   {
-    criteria: { query: 'list:"openstack-status@redhat.com"' },
-    actions: {
-      labels: ["list/redhat/openstack-status", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
     criteria: { query: 'list:"boston-list@redhat.com"' },
     actions: {
       labels: ["list/redhat/boston-list"],
@@ -355,14 +323,6 @@ var FILTERS = [
     criteria: { query: 'list:"bss-list@redhat.com"' },
     actions: {
       labels: ["list/redhat/bss-list"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"git@vger.kernel.org"' },
-    actions: {
-      labels: ["list/linux/kernel", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -384,73 +344,9 @@ var FILTERS = [
     },
   },
   {
-    criteria: { query: 'list:"users@lists.rdoproject.org"' },
-    actions: {
-      labels: ["list/rdo/users", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"dev@lists.rdoproject.org"' },
-    actions: {
-      labels: ["list/rdo/dev", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"rdo-list@redhat.com"' },
-    actions: {
-      labels: ["list/rdo-list", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"cloud-dept-status@redhat.com"' },
-    actions: {
-      labels: ["list/redhat/cloud-dept-status", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"python-list@redhat.com"' },
-    actions: {
-      labels: ["list/redhat/python", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"atomic-devel@projectatomic.io"' },
-    actions: {
-      labels: ["list/atomic-devel", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"centos-devel@centos.org"' },
-    actions: {
-      labels: ["list/centos-devel", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
     criteria: { query: 'list:"friday-list@redhat.com"' },
     actions: {
       labels: ["list/redhat/friday-list", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
-    criteria: { query: 'list:"atomic@projectatomic.io"' },
-    actions: {
-      labels: ["list/atomic", "!expireafter/30d"],
       archive: true,
       neverSpam: true,
     },
@@ -495,28 +391,12 @@ var FILTERS = [
     },
   },
   {
-    criteria: { query: 'list:"eng-common-logging@redhat.com"' },
-    actions: {
-      labels: ["list/redhat/eng-common-logging", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
     criteria: {
       query:
         '{list:"rh-moc-openstack@redhat.com" list:"redhat-moc@lists.massopen.cloud"}',
     },
     actions: {
       labels: ["list/redhat/moc", "!expireafter/30d"],
-    },
-  },
-  {
-    criteria: { query: 'list:"puppet-list@redhat.com"' },
-    actions: {
-      labels: ["list/redhat/puppet", "!expireafter/30d"],
-      archive: true,
-      neverSpam: true,
     },
   },
   {
