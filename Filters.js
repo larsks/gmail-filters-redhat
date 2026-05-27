@@ -109,9 +109,17 @@ var FILTERS = [
     },
   },
   {
+    criteria: { query: "from:notifications@github.com subject:osac-project" },
+    actions: {
+      labels: ["github", "!project/osac"],
+      archive: true,
+      neverSpam: true,
+    },
+  },
+  {
     criteria: { query: "from:notifications@github.com" },
     actions: {
-      labels: ["github", "!archiveafter/2d"],
+      labels: ["github"],
       neverSpam: true,
     },
   },
@@ -203,7 +211,7 @@ var FILTERS = [
       query: "from:jira@redhat.atlassian.net subject:OSAC",
     },
     actions: {
-      labels: ["!bug/redhat/osac"],
+      labels: ["!bug/redhat/osac", "!project/osac"],
       neverSpam: true,
     },
   },
