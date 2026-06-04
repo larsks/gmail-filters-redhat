@@ -458,7 +458,7 @@ var FILTERS = [
   {
     criteria: {
       query:
-        "from:(president@bu.edu OR sumlab@bu.edu OR bwell@bu.edu OR provost@bu.edu OR research@bu.edu OR livingourvalues@bu.edu OR bussw@bu.edu OR excellence@bu.edu OR sustainability@bu.edu)",
+        "from:(fsao@bu.edu OR president@bu.edu OR sumlab@bu.edu OR bwell@bu.edu OR provost@bu.edu OR research@bu.edu OR livingourvalues@bu.edu OR bussw@bu.edu OR excellence@bu.edu OR sustainability@bu.edu)",
     },
     actions: {
       trash: true,
