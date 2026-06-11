@@ -109,18 +109,11 @@ var FILTERS = [
     },
   },
   {
-    criteria: { query: "from:notifications@github.com subject:osac-project" },
-    actions: {
-      labels: ["github", "!project/osac"],
-      archive: true,
-      neverSpam: true,
-    },
-  },
-  {
     criteria: { query: "from:notifications@github.com" },
     actions: {
       labels: ["github"],
       neverSpam: true,
+      archive: true,
     },
   },
   {
